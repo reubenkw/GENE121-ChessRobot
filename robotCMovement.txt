@@ -1,0 +1,54 @@
+//global constants
+const double WHEEL_RADIUS = 2.75;
+const double SIDE_LENGTH = 5.6;
+const int FAST_SPEED = 75;
+const int SQUARES_PER_SIDE = 8;
+	//assume that motorA/B move in x direction
+	//assume that motorC/D move in y direction
+task main()
+{
+
+}
+
+void move(tMotor motorPort, double dist_cm)
+{
+	motor[motorPort] = FAST_SPEED * dist_cm / abs(dist_cm);
+	nMotorEncoder[motorPort] = 0; //not sure if I should have this
+	while(abs(nMotorEncoder[motorPort]) < abs(dist_cm * 180 / (PI * WHEEL_RADIUS)))
+	{}
+	motor[motorPort] = 0;
+}
+
+void returnToOrigin()
+{
+	//this function only works as long as the only other function to reset the motor encoder is the move function
+	//actually not sure if the move function should even be resetting it
+	//maybe we should have a physical stop or smth idek
+	
+	int directionX = 1;
+	if(nMotorEncoder[MotorA] < 0)
+		directionX = -1;
+	motor[motorA] = motor[MotorB] = direction * motorFAST_SPEED;
+	while(abs(nMotorEncoder[motorA]) > 0)
+	{}
+	motor[motorA] = motor[MotorB] = 0;
+	
+	int directionY = 1;
+	if(nMotorEncoder[MotorC] < 0)
+		directionY = -1;
+	motor[motorC] = motor[MotorD] = direction * motorFAST_SPEED;
+	while(abs(nMotorEncoder[motorC]) > 0)
+	{}
+	motor[motorC] = motor[MotorD] = 0;
+
+}
+
+void movePosition(double x, double y)
+{
+	//assume that top left position is 0,0
+	//assume that the robot starts in the middle of the chessboard
+	move(motorA, (x - SQUARES_PER_SIDE/2) * SIDE_LENGTH + SIDE_LENGTH/2);
+	move(motorB, (x - SQUARES_PER_SIDE/2) * SIDE_LENGTH + SIDE_LENGTH/2);	
+	move(motorC, (y - SQUARES_PER_SIDE/2) * SIDE_LENGTH + SIDE_LENGTH/2);
+	move(motorD, (y - SQUARES_PER_SIDE/2) * SIDE_LENGTH + SIDE_LENGTH/2);
+}
