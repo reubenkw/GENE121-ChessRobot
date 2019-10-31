@@ -1,0 +1,54 @@
+#include "PC_File().c"
+void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8])
+{	
+	//move location will be [xinitial,yinitial,xfinal,yfinal]
+	
+	int numEaten = 0;
+	bool fileOkay = openReadPC(fin,"location.txt");
+	if(!fileOkay)
+	{
+		displayString(2,"Could not find file");
+		wait1Msec(5000);
+	}
+	else
+	{	
+		for(int counter = 0; counter < 4, counter++)
+		{
+			readIntPC(TFileHandle,moveLocation[counter]);
+		}
+		
+		//check for eaten pieces
+		if(board[moveLocation[2],moveLocation[3]] != 0)
+		//assume that no chess piece value is 0
+		{
+			numEaten++;
+			movePosition(moveLocation[2],moveLocation[3]);
+			//pick up piece
+			movePosition(9, numEaten);
+		}
+		//check for castling
+		elseif(board[moveLocation[0],moveLocation[1]] == 7 &&
+			(moveLocation[3] == moveLocation[0] + 2 || moveLocation[3] == moveLocation[0] - 2))
+		{
+			if(moveLocation[3] == moveLocation[0] + 2)
+			{
+				movePosition(8,0);
+				//pick up piece
+				movePosition(6,0);
+			}
+			else
+			{
+				movePosition(0,0);
+				//pick up piece
+				movePosition(3,0);
+			}
+		}
+
+		movePosition(moveLocation[0],moveLocation[1]);
+		//pick up piece
+		movePosition(moveLocation[2],moveLocation[3]);
+		
+		
+	}
+	
+}
