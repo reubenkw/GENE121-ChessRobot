@@ -1,0 +1,104 @@
+bool pickUpPiece (int enc_limit_for_claw)
+{
+	bool successful = true;
+	openClaw(enc_limit_for_claw);
+	
+
+	nMotorEncoder[Zmotor] = 0;
+	motor[Zmotor] = 10;
+	while(SensorValue[S1] == 0) //touch sensor
+	{}
+	
+	motor[Zmotor] = 0;
+	returnDist = nMotorEncoder[Zmotor];
+
+	closeClaw();
+	//the following is just an idea of integrating some kind of check? 
+	if(SensorValue[S1] == 1)
+	{
+		moveDistanceNeg(Zmotor, returnDist, gearsize);
+		return true; //tells main that the piece was picked up
+	}
+	else
+	{
+		for(int count = 0; count < 5; count++)
+		{
+			openClaw(enc_limit_for_claw);
+			moveDistanceNeg(Zmotor, returnDist, gearsize);
+			
+			
+			nMotorEncoder[Zmotor] = 0;
+			motor[Zmotor] = 10;
+			while(SensorValue[S1] == 0) //touch sensor
+			{}
+	
+			motor[Zmotor] = 0;
+			returnDist = nMotorEncoder[Zmotor];
+			
+			closeClaw();
+			if (SensorValue[S1] == 1)
+			{
+				moveDistanceNeg(Zmotor, returnDist, gearsize);
+				return true;
+				count = 6;
+			}
+		}
+		return false;
+				
+}
+
+
+
+void moveDistancePos (tmotor motorPort, int dist, int sizeofwheel) //we can decide on what positive is based on how we installed the motors
+{
+		
+	nMotorEnocder[motorPort] = 0;
+	motor[motorPort] = 10;
+	int rotations = 0;
+	rotations = dist * 360/ (2*PI*sizeofwheel);
+	while (nMotorEncoder[motorPort] < rotations)
+	{}
+	
+	motor[motorPort] = 0;
+}
+
+void moveDistanceNeg (tmotor motorPort, int dist, int sizeofwheel)
+{
+		
+	nMotorEnocder[motorPort] = 0;
+	motor[motorPort] = -10;
+	int rotations = 0;
+	rotations = -dist * 360/ (2*PI*sizeofWheel);
+	while (nMotorEncoder[motorPort] > rotations)
+	{}
+	
+	motor[motorPort] = 0;
+}
+
+void openClaw (int enc_limit)
+{
+	nMotorEncoder[clawMotor] = 0;
+	motor[clawMotor] = 10;
+	while(nMotorEncoder[clawMotor] < enc_limit)
+	{}
+	motor[clawMotor] = 0;
+}
+
+void closeClaw()
+{
+	motor[clawMotor] = -10;
+	while (nMotorEncoder[clawMotor] > 0)
+	{}
+	motor[clawMotor] = 0;
+}
+
+void dropPiece()
+{
+	moveDistancePos (Zmotor, dist, sizeofwheel);
+
+	openClaw(enc_limit);
+	moveDistanceNeg (ZMotor, dist, sizeofwheel);
+	
+	closeClaw();
+
+}
