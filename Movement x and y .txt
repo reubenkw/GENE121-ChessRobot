@@ -1,0 +1,52 @@
+void moveToSquare(int x, int y)
+{
+	nMotorEncoder[motorX] = 0;
+	nMotorEncoder[motorY] = 0;
+
+	enc_limit_x = x*(size of one square) * 360/(2*PI*2.75);
+	enc_limit_y = y*(size of one square) * 360/(2*PI*small wheel size);
+
+	motor[motorX] = 20;
+	while (nMotorEncoder[motorX] < enc_limit_x)
+	{}
+	motor[motorX] = 0;
+
+	motor[motorY] = 20;
+	while (nMotorEncoder[motorY] < enc_limit_y)
+	{}
+
+	motor[motorY] = 0;
+
+	
+}
+
+void return_to_start()
+{
+
+	motor[motorY] = -20;
+	while (nMotorEncoder[motorY] > 0)
+	{}
+	motor[motorY] = 0;
+	nMotorEncoder[motorY] = 0;
+
+	motor[motorX] = -20;
+	while (nMotorEncoder[motorX] > 0)
+	{}
+	motor[motorX] = 0;
+	
+
+}
+
+void movePiece (int ix, int iy, int fx, int fy)
+{
+	
+	moveToSquare(ix, iy);
+	pickUpPiece(enc_limit_for_claw);
+	return_to_start();
+	moveToSquare(fx, fy);
+	dropPiece();
+	return_to_start();
+}
+
+
+
