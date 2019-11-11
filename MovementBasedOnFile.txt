@@ -1,4 +1,15 @@
 #include "PC_File().c"
+//desiredFirstElement = 0;
+
+void waitForCPPFile(int desiredFirstElement) {
+	int inNum = desiredFirstElement + 1;
+	do{
+		wait1Msec(2000);
+		readIntPC(TFileHandle,inNum);
+		//close file
+	} while(inNum != desiredFirstElement);
+}
+
 void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8])
 {	
 	//move location will be [xinitial,yinitial,xfinal,yfinal]
@@ -11,10 +22,11 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8])
 		wait1Msec(5000);
 	}
 	else
-	{	
-		for(int counter = 0; counter < 4, counter++)
+	{	waitForCPPFile(desiredFirstElement);
+		
+		for(int counter = 0; counter < 4; counter++)
 		{
-			readIntPC(TFileHandle,moveLocation[counter]);
+			readIntPC(TFileHandle,moveLocation[i]);
 		}
 		
 		//check for eaten pieces
@@ -48,6 +60,37 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8])
 		//pick up piece
 		movePosition(moveLocation[2],moveLocation[3]);
 		
+		//checking for legal positions
+		
+		string s = "";
+		bool missing = false;
+		bool found = false;
+		int x0 = 0; y0 = 0, x = 0, y = 0;
+		while(readIntPC(TFileHandle,s))
+		{
+			if(s=="piecePos")
+			{
+				readIntPC(TFileHandle,x0);
+				readIntPC(TFileHandle,y0);
+				bool missing = //check if piece missing through touch sensor return a boolean;
+			}
+			if(missing)
+			{
+				while(readIntPC(TFileHandle,s)!="piecePos")
+				{
+					readIntPC(TFileHandle,x);
+					readIntPC(TFileHandle,y);
+					bool found = //check if piece missing through touch sensor and color sensor return a boolean;
+				}
+			}
+			while(readIntPC(TFileHandle,s)!="piecePos")
+			{}
+		}
+		
+		//updating array
+		char piece = chessboard[x0][y0];
+		chessboard[x0][y0] = *;
+		chessboard[x][y] = piece;
 		
 	}
 	
