@@ -1,7 +1,7 @@
 #include "PC_File().c"
 //desiredFirstElement = 0;
 
-void waitForCPPFile(int desiredFirstElement) {
+void waitForCPPFile(TFileHandle&fin, int desiredFirstElement) {
 	int inNum = desiredFirstElement + 1;
 	do{
 		wait1Msec(2000);
