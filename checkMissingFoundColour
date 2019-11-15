@@ -8,7 +8,7 @@ bool checkMissing(int posX, int posY, char*prevPositions) {
 	return found;
 }
 
-bool checkFound(int posX, int posY, char&prevPositions){
+bool checkFound(int posX, int posY, char*prevPositions){
 	bool found = false;
 	moveToSquare(posX, posY);
 	moveDownTilTouch();
