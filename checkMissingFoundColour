@@ -1,18 +1,18 @@
-bool checkMissing(int posX, int posY, char&prevPositions[][]) {
+bool checkMissing(int posX, int posY, char*prevPositions) {
 	bool found = false;
 	moveToSquare(posX, posY);
 	moveDownTilTouch();
-	if (SensorValue[S1] == 1 && prevPositions[posX][posY] != '.') { //the piece was not previously there
+	if (SensorValue[S1] == 0 && prevPositions[posX][posY] != '.') { //the piece is not there
 		found = true;	
 	}
 	return found;
 }
 
-bool checkFound(int posX, int posY, char&prevPositions[][]){
+bool checkFound(int posX, int posY, char&prevPositions){
 	bool found = false;
 	moveToSquare(posX, posY);
 	moveDownTilTouch();
-	if (SensorValue[S1] == 0 && prevPositions[posX][posY] == '.') { //the piece was previously there
+	if (SensorValue[S1] == 1 && prevPositions[posX][posY] == '.') { //the piece was previously there
 		found = true;	
 	} else if (SensorValue[S1] == 1){ //check colour of the piece
 		if (checkUserPiece(S2))
