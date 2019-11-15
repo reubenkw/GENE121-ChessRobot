@@ -59,7 +59,6 @@ void movePiece (int ix, int iy, int fx, int fy)
 	
 	moveToSquare(ix, iy);
 	pickUpPiece(enc_limit_for_claw);
-	return_to_start();
 	moveToSquare(fx, fy);
 	dropPiece();
 	return_to_start();
