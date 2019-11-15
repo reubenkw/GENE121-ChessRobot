@@ -54,14 +54,21 @@ void return_to_start()
 
 }
 
-void movePiece (int ix, int iy, int fx, int fy)
+bool movePiece (int ix, int iy, int fx, int fy)
 {
-	
+	bool successful = true;
 	moveToSquare(ix, iy);
-	pickUpPiece(enc_limit_for_claw);
-	moveToSquare(fx, fy);
-	dropPiece();
-	return_to_start();
+	successful = pickUpPiece(enc_limit_for_claw);
+	if (successful)
+	{
+		moveToSquare(fx, fy);
+		dropPiece();
+		return_to_start();
+		return true;
+	}
+	else
+		return false;
+
 }
 
 
