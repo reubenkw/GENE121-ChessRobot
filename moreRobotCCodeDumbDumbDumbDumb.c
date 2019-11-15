@@ -49,10 +49,9 @@ void moveDownTilTouch (int enc_limit_claw)
 	openClaw(enc_limit_claw);
 	//opens all the way
 	int tenCmENC_LIMIT = 10 * 360/ (2*PI*sizeOfWheel);
-	int returnDist = 0;
 	nMotorEncoder[motorC] = 0;
 	motor[motorC] = 10;
-	while(SensorValue[S1] == 0 && nMotorEncoder < tenCmENC_LIMIT) //touch sensor
+	while(SensorValue[S1] == 0 && nMotorEncoder[motorC] < tenCmENC_LIMIT) //touch sensor
 	{}
 	motor[motorC] = 0;
 }
@@ -63,7 +62,7 @@ void moveDistancePos (tMotor motorPort, int dist, float sizeOfWheel) //we can de
 	nMotorEncoder[motorPort] = 0;
 	motor[motorPort] = 10;
 	int rotations = 0;
-	rotations = dist * 360/ (2*PI*sizeOfwheel);
+	rotations = dist * 360/ (2*PI*sizeOfWheel);
 	while (nMotorEncoder[motorPort] < rotations)
 	{}
 
@@ -76,7 +75,7 @@ void moveDistanceNeg (tMotor motorPort, int dist, float sizeOfWheel)
 	nMotorEncoder[motorPort] = 0;
 	motor[motorPort] = -10;
 	int rotations = 0;
-	rotations = -dist * 360/ (2*PI*sizeofWheel);
+	rotations = -dist * 360/ (2*PI*sizeOfWheel);
 	while (nMotorEncoder[motorPort] > rotations)
 	{}
 
@@ -274,7 +273,7 @@ void readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 			movePiece(checkX,checkY,9, numEaten);
 		}
 		//check for castling
-		else if(board[(moveLocation[0])][(moveLocation[1])] == 7 &&
+		else if(checkValue == 'K' &&
 			(moveLocation[3] == moveLocation[0] + 2 || moveLocation[3] == moveLocation[0] - 2))
 		{
 			if(moveLocation[3] == moveLocation[0] + 2)
@@ -302,23 +301,25 @@ void readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 			{
 				readIntPC(fin,x0);
 				readIntPC(fin,y0);
-				//move(x0,y0);
-				missing = true; //check if piece missing through touch sensor return a boolean;
+				missing = checkMissing(x0,y0);
 			}
 			if(missing)
 			{
-				while(readTextPC(fin,s)!="piecePos")
+				readTextPC(fin,s);
+				while(s!="piecePos")
 				{
 					readIntPC(fin,x);
 					readIntPC(fin,y);
-					//move(x,y);
-					found = true; //check if piece missing through touch sensor and color sensor return a boolean;
+					found = checkFound(x,y);
+					readTextPC(fin,s);
 				}
 			}
-			while(readTextPC(fin,s)!="piecePos")
-			{}
+			while(s!="piecePos")
+			{
+				readTextPC(fin,s);
+			}
 		}
-		// check for illegal moves
+		//check for illegal moves
 		if(missing == false || found == false)
 		{
 			for(int i = 0; i < 7; i++)
@@ -346,58 +347,59 @@ void readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 				}
 			}
 		}
+	}
+
+	//updating array
+	char piece = chessboard[x0][y0];
+	chessboard[x0][y0] = '.';
+	chessboard[x][y] = piece;
+
+	userMove[0] = x0;
+	userMove[1] = y0;
+	userMove[2] = x;
+	userMove[3] = y;
 }
 
-		//updating array
-		char piece = chessboard[x0][y0];
-		chessboard[x0][y0] = '.';
-		chessboard[x][y] = piece;
-
-		userMove[0] = x0;
-		userMove[1] = y0;
-		userMove[2] = x;
-		userMove[3] = y;
-	}
-
-	void initializeChessboard(int*chessboard)
+void initializeChessboard()
+{
+	for(int i = 0; i < 8; i++)
 	{
-		for(int i = 0; i < 8; i++)
-		{
-			chessboard[i][0] = 'W';
-		}
-
-		for(int x = 0; x < 8; x++)
-		{
-			chessboard[x][1] = 'W';
-		}
-
-		for(int y = 2; y < 6; y++)
-		{
-			for(int x = 0; x < 8; x++) {
-				chessboard[x][y] = '.';
-			}
-		}
-
-		for(int x = 0; x < 8; x++)
-		{
-			chessboard[x][6] = 'p';
-		}
-		for(int i = 0; i < 8; i++)
-		{
-			chessboard[i][6] = 'B';
-		}
-		for(int i = 0; i < 8; i++)
-		{
-			chessboard[i][7] = 'B';
-		}
+		chessboard[i][0] = 'W';
 	}
 
-	task main()
+	for(int x = 0; x < 8; x++)
 	{
-		SensorType[S2] = sensorEV3_Color;
-		wait1Msec(50);
-		SensorMode[S2] = modeEV3Color_Color;
-		int chessboard[8][8];
-		initializeChessboard(chessboard);
-
+		chessboard[x][1] = 'W';
 	}
+
+	for(int y = 2; y < 6; y++)
+	{
+		for(int x = 0; x < 8; x++) {
+			chessboard[x][y] = '.';
+		}
+	}
+
+	for(int i = 0; i < 3 ; i++)
+	{
+		chessboard[6][i] = 'B';
+	}
+	chessboard[6][4] = 'K';
+	for(int i = 5; i < 8; i++)
+	{
+		chessboard[6][i] = 'B';
+	}
+	for(int i = 0; i < 8; i++)
+	{
+		chessboard[7][i] = 'B';
+	}
+}
+
+task main()
+{
+
+	SensorType[S2] = sensorEV3_Color;
+	wait1Msec(50);
+	SensorMode[S2] = modeEV3Color_Color;
+	initializeChessboard();
+
+}
