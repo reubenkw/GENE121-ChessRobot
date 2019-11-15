@@ -1,39 +1,56 @@
-void moveToSquare(int x, int y)
-{
-	nMotorEncoder[motorX] = 0;
-	nMotorEncoder[motorY] = 0;
+//motorX = motorA motorY = motorB motorZ = motorC claw motor = motorD
 
+void moveToSquare(float x, float y)
+{
+	int enc_limit_x = 0;
+	int enc_limit_y = 0;
+	
 	enc_limit_x = x*(size of one square) * 360/(2*PI*2.75);
 	enc_limit_y = y*(size of one square) * 360/(2*PI*small wheel size);
-
-	motor[motorX] = 20;
-	while (nMotorEncoder[motorX] < enc_limit_x)
-	{}
-	motor[motorX] = 0;
-
-	motor[motorY] = 20;
-	while (nMotorEncoder[motorY] < enc_limit_y)
-	{}
-
-	motor[motorY] = 0;
-
+	if (nMotorEncoder[motorA] < enc_limit_x)
+	{
+		motor[motorA] = 20;
+		while (nMotorEncoder[motorA] < enc_limit_x)
+		{}
+		motor[motorA] = 0;
+	}
+	else if (nMotorEncoder[motorA] > enc_limit_x)
+	{
+		motor[motorA] = -20;
+		while (nMotorEncoder[motorA] > enc_limit_x)
+		{}
+		motor[motorA] = 0;
+	}
 	
+	if (nMotorEncoder[motorB] < enc_limit_y)
+	{
+		motor[motorB] = 20;
+		while (nMotorEncoder[motorB] < enc_limit_y)
+		{}
+		motor[motorB] = 0;
+	}
+	else if (nMotorEncoder[motorB] > enc_limit_y)
+	{
+		motor[motorB] = -20;
+		while (nMotorEncoder[motorB] > enc_limit_y)
+		{}
+		motor[motorB] = 0;
+	}
 }
 
 void return_to_start()
 {
 
-	motor[motorY] = -20;
-	while (nMotorEncoder[motorY] > 0)
+	motor[motorB] = -20;
+	while (nMotorEncoder[motorB] > 0)
 	{}
-	motor[motorY] = 0;
-	nMotorEncoder[motorY] = 0;
+	motor[motorB] = 0;
+	nMotorEncoder[motorB] = 0;
 
-	motor[motorX] = -20;
-	while (nMotorEncoder[motorX] > 0)
+	motor[motorA] = -20;
+	while (nMotorEncoder[motorA] > 0)
 	{}
-	motor[motorX] = 0;
-	
+	motor[motorA] = 0;
 
 }
 
