@@ -245,7 +245,7 @@ void readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 {
 	int numEaten = 0;
 	int x0 = 0, y0 = 0, x = 0, y = 0;
-	bool fileOkay = openReadPC(fin,"location.txt");
+	bool fileOkay = openReadPC(fin,"IPC_CPP_TO_RC.txt");
 	if(!fileOkay)
 	{
 		displayString(2,"Could not find file");
@@ -297,7 +297,7 @@ void readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 		bool found = false;
 		while(readTextPC(fin,s))
 		{
-			if(s=="piecePos")
+			if(s == "piecePos")
 			{
 				readIntPC(fin,x0);
 				readIntPC(fin,y0);
@@ -319,41 +319,15 @@ void readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 				readTextPC(fin,s);
 			}
 		}
-		//check for illegal moves
-		if(missing == false || found == false)
-		{
-			for(int i = 0; i < 7; i++)
-			{
-				for(int j = 0; j < 7 && !missing; j++)
-				{
-					missing = checkMissing(i,j);
-					if(missing)
-					{
-						x0 = i;
-						y0 = j;
-					}
-				}
-			}
-			for(int i = 0; i < 7; i++)
-			{
-				for(int j = 0; j < 7 && !found; j++)
-				{
-					found = checkFound(i,j,);//check if piece missing through touch sensor return a boolean;
-					if(missing)
-					{
-						x = i;
-						y = j;
-					}
-				}
-			}
-		}
 	}
 
+	if(x0!=0||y0!=0||x!=0||y!=0)
+	{
+		char piece = chessboard[x0][y0];
+		chessboard[x0][y0] = '.';
+		chessboard[x][y] = piece;
+	}
 	//updating array
-	char piece = chessboard[x0][y0];
-	chessboard[x0][y0] = '.';
-	chessboard[x][y] = piece;
-
 	userMove[0] = x0;
 	userMove[1] = y0;
 	userMove[2] = x;
@@ -378,7 +352,6 @@ void initializeChessboard()
 			chessboard[x][y] = '.';
 		}
 	}
-
 	for(int i = 0; i < 3 ; i++)
 	{
 		chessboard[6][i] = 'B';
@@ -397,9 +370,37 @@ void initializeChessboard()
 task main()
 {
 
+	//X move = motorA
+	//Y move = motorB
+	//Z move = motorC
+	//claw motor = motorD
+	SensorType[S1] = sensorEV3_Touch;
 	SensorType[S2] = sensorEV3_Color;
 	wait1Msec(50);
 	SensorMode[S2] = modeEV3Color_Color;
+	int moveLocation[4] = {0,0,0,0};
+	int userMove[4] = {0,0,0,0};
+	int desiredFirstElement = 0;
+	int writeFirstElement = 0;
 	initializeChessboard();
+	bool over = false;
+
+	waitForCPPFile(desiredFirstElement);
+
+	TFileHandle fout;
+	bool fileOkay = openWritePC(fout,"IPC_RC_TO_CPP.txt");
+	if(fileOkay)
+	{
+		writeLongPC(fout,writeFirstElement);
+		writeFirstElement++;
+	}
+
+	while(!getButtonPress(buttonEnter))
+	{}
+	while(getButtonPress(buttonEnter))
+	{}
+
+	//check pawn then horse
+
 
 }
