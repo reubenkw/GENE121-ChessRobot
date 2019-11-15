@@ -2,22 +2,22 @@
 char chessboard[8][8];
 
 //movement based on file
-#include "PC_File().c"
+#include "PC_FileIO.c"
 //desiredFirstElement = 0;
 
 void waitForCPPFile(int desiredFirstElement) {
 	int inNum = desiredFirstElement + 1;
 	do{
 		wait1Msec(2000);
-		readIntPC(TFileHandle,inNum);
+		TFileHandle fin;
+		readIntPC(fin,inNum);
 		//close file
 	} while(inNum != desiredFirstElement);
 }
 
-void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], int userMove[4], int&desiredFirstElement)
+void readLocationInput(TFileHandle&fin, int*moveLocation, int*board, int*userMove, int&desiredFirstElement)
 {
 	//move location will be [xinitial,yinitial,xfinal,yfinal]
-
 	int numEaten = 0;
 	bool fileOkay = openReadPC(fin,"location.txt");
 	if(!fileOkay)
@@ -31,7 +31,9 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 
 		for(int counter = 0; counter < 4; counter++)
 		{
-			readIntPC(TFileHandle,moveLocation[i]);
+			int a = 0;
+			readIntPC(fin,a);
+			moveLocation[counter] = a;
 		}
 
 		//check for eaten pieces
@@ -100,7 +102,7 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 			{
 				for(int j = 0; j < 7 && !missing; j++)
 				{
-					move(i,j);
+					movePiece(i,j);
 					missing = true;//check if piece missing through touch sensor return a boolean;
 					if(missing)
 					{
@@ -113,7 +115,7 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 			{
 				for(int j = 0; j < 7 && !found; j++)
 				{
-					move(i,j);
+					movePiece(i,j);
 					found = true;//check if piece missing through touch sensor return a boolean;
 					if(missing)
 					{
