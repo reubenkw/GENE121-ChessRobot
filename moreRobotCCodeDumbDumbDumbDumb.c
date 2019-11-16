@@ -85,16 +85,16 @@ void moveDistanceNeg (tMotor motorPort, float dist, float SIZE_OF_WHEEL)
 void openClaw (int enc_limit)
 {
 	nMotorEncoder[motorD] = 0;
-	motor[motorD] = 10;
-	while(nMotorEncoder[motorD] < enc_limit)
+	motor[motorD] = -10;
+	while(nMotorEncoder[motorD] > enc_limit)
 	{}
 	motor[motorD] = 0;
 }
 
 void closeClaw()
 {
-	motor[motorD] = -10;
-	while (nMotorEncoder[motorD] > 0)
+	motor[motorD] = 10;
+	while (nMotorEncoder[motorD] < 0)
 	{}
 	motor[motorD] = 0;
 }
