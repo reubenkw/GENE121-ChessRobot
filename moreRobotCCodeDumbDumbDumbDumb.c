@@ -5,8 +5,8 @@ char chessboard[8][8];
 //desiredFirstElement = 0;
 bool pickUpPiece(int enc_limit_for_claw, float SIZE_OF_WHEEL);
 void moveDownTilTouch(int enc_limit_claw, float SIZE_OF_WHEEL);
-void moveDistancePos(tMotor motorPort, int dist, float SIZE_OF_WHEEL);
-void moveDistanceNeg(tMotor motorPort, int dist, float SIZE_OF_WHEEL);
+void moveDistancePos(tMotor motorPort, float dist, float SIZE_OF_WHEEL);
+void moveDistanceNeg(tMotor motorPort, float dist, float SIZE_OF_WHEEL);
 void openClaw(int enc_limit);
 void closeClaw();
 void dropPiece(float SIZE_OF_WHEEL);
@@ -57,7 +57,7 @@ void moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
 }
 
 
-void moveDistancePos (tMotor motorPort, int dist, float SIZE_OF_WHEEL) //we can decide on what positive is based on how we installed the motors
+void moveDistancePos (tMotor motorPort, float dist, float SIZE_OF_WHEEL) //we can decide on what positive is based on how we installed the motors
 {
 	nMotorEncoder[motorPort] = 0;
 	motor[motorPort] = 10;
@@ -69,7 +69,7 @@ void moveDistancePos (tMotor motorPort, int dist, float SIZE_OF_WHEEL) //we can 
 	motor[motorPort] = 0;
 }
 
-void moveDistanceNeg (tMotor motorPort, int dist, float SIZE_OF_WHEEL)
+void moveDistanceNeg (tMotor motorPort, float dist, float SIZE_OF_WHEEL)
 {
 
 	nMotorEncoder[motorPort] = 0;
@@ -183,18 +183,21 @@ bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL)
 		return false;
 
 }
-bool checkMissing(int posX, int posY, float SIZE_OF_WHEEL) {
+
+bool checkMissing(int posX, int posY, float SIZE_OF_WHEEL) 
+{
 	bool found = false;
-	int enc_limit = -55;
+	int dist = 13;
 	moveToSquare(posX, posY);
-	moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
+	moveDistanceNeg(motorC, dist, 1);
 	if (SensorValue[S1] == 0 && chessboard[posX][posY] != '.') { //the piece is not there
 		found = true;
 	}
 	return found;
 }
 
-bool checkFound(int posX, int posY, float Z_WHEEL_SIZE,float SIZE_OF_WHEEL){
+bool checkFound(int posX, int posY, float Z_WHEEL_SIZE,float SIZE_OF_WHEEL)
+{	
 	bool found = false;
 	int enc_limit = -55;
 	moveToSquare(posX, posY);
