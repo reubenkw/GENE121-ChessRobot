@@ -21,6 +21,13 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL);
 void writingToCPP(TFileHandle fout, int writeFirstElement,int*userMove);
 
+/*
+WHEEL RADII IN CM:
+	WHEEL RADIUS (X) TO PASS IN: 2.75/4
+	WHEEL RADIUS (Y) TO PASS IN: 2.75/2
+	WHEEL RADIUS (Z) TO PASS IN: 1
+*/
+
 bool pickUpPiece (float SIZE_OF_WHEEL)
 {
 	bool successful = true;
@@ -29,12 +36,12 @@ bool pickUpPiece (float SIZE_OF_WHEEL)
 
 	if(SensorValue[S1] == 1)
 	{
-		moveDistanceNeg (motorC, 20, SIZE_OF_WHEEL);
+		moveDistanceNeg (motorC, 10, SIZE_OF_WHEEL);
 		closeClaw();
-		openClaw (-50);
-		moveDistancePos(motorC, 20, SIZE_OF_WHEEL);
+		openClaw (-45);
+		moveDistancePos(motorC, 8, SIZE_OF_WHEEL);
 		closeClaw();
-		moveDistanceNeg(motorC, 20, SIZE_OF_WHEEL);
+		moveDistanceNeg(motorC, 15, SIZE_OF_WHEEL);
 		return successful;
 	}
 	else
@@ -48,9 +55,9 @@ void moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
 {
 	openClaw(enc_limit_claw);
 	//opens all the way
-	int tenCmENC_LIMIT = 17 * 360/ (2*PI*SIZE_OF_WHEEL);
+	int tenCmENC_LIMIT = 20 * 360/ (2*PI*SIZE_OF_WHEEL);
 	nMotorEncoder[motorC] = 0;
-	motor[motorC] = 20;
+	motor[motorC] = 35;
 	while(SensorValue[S1] == 0 && nMotorEncoder[motorC] < tenCmENC_LIMIT) //touch sensor
 	{}
 	motor[motorC] = 0;
@@ -60,7 +67,7 @@ void moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
 void moveDistancePos (tMotor motorPort, float dist, float SIZE_OF_WHEEL) //we can decide on what positive is based on how we installed the motors
 {
 	nMotorEncoder[motorPort] = 0;
-	motor[motorPort] = 20;
+	motor[motorPort] = 35;
 	int rotations = 0;
 	rotations = dist * 360/ (2*PI*SIZE_OF_WHEEL);
 	while (nMotorEncoder[motorPort] < rotations)
@@ -73,7 +80,7 @@ void moveDistanceNeg (tMotor motorPort, float dist, float SIZE_OF_WHEEL)
 {
 
 	nMotorEncoder[motorPort] = 0;
-	motor[motorPort] = -20;
+	motor[motorPort] = -35;
 	int rotations = 0;
 	rotations = -dist * 360/ (2*PI*SIZE_OF_WHEEL);
 	while (nMotorEncoder[motorPort] > rotations)
@@ -85,7 +92,7 @@ void moveDistanceNeg (tMotor motorPort, float dist, float SIZE_OF_WHEEL)
 void openClaw (int enc_limit)
 {
 	nMotorEncoder[motorD] = 0;
-	motor[motorD] = -20;
+	motor[motorD] = -35;
 	while(nMotorEncoder[motorD] > enc_limit)
 	{}
 	motor[motorD] = 0;
@@ -93,7 +100,7 @@ void openClaw (int enc_limit)
 
 void closeClaw()
 {
-	motor[motorD] = 20;
+	motor[motorD] = 35;
 	while (nMotorEncoder[motorD] < 0)
 	{}
 	motor[motorD] = 0;
@@ -101,8 +108,8 @@ void closeClaw()
 
 void dropPiece(float SIZE_OF_WHEEL)
 {
-	int enc_limit = -55;
-	int dist = 10; //NEEDS TESTING
+	int enc_limit = -45;
+	int dist = 15; //NEEDS TESTING
 	moveDistancePos (motorC, dist, SIZE_OF_WHEEL);
 
 	openClaw(enc_limit);
@@ -117,18 +124,18 @@ void moveToSquare(int x, int y)
 	int enc_limit_x = 0;
 	int enc_limit_y = 0;
 
-	enc_limit_x = x*(5.5) * 360/(2*PI*2.75);
-	enc_limit_y = y*(5.5) * 360/(2*PI*0.5);
+	enc_limit_x = x*(5.72) * 360/(2*PI*2.75/2);
+	enc_limit_y = y*(5.72) * 360/(2*PI*2.75/4);
 	if (nMotorEncoder[motorA] < enc_limit_x)
 	{
-		motor[motorA] = 20;
+		motor[motorA] = 35;
 		while (nMotorEncoder[motorA] < enc_limit_x)
 		{}
 		motor[motorA] = 0;
 	}
 	else if (nMotorEncoder[motorA] > enc_limit_x)
 	{
-		motor[motorA] = -20;
+		motor[motorA] = -35;
 		while (nMotorEncoder[motorA] > enc_limit_x)
 		{}
 		motor[motorA] = 0;
@@ -136,14 +143,14 @@ void moveToSquare(int x, int y)
 
 	if (nMotorEncoder[motorB] < enc_limit_y)
 	{
-		motor[motorB] = 20;
+		motor[motorB] = 35;
 		while (nMotorEncoder[motorB] < enc_limit_y)
 		{}
 		motor[motorB] = 0;
 	}
 	else if (nMotorEncoder[motorB] > enc_limit_y)
 	{
-		motor[motorB] = -20;
+		motor[motorB] = -35;
 		while (nMotorEncoder[motorB] > enc_limit_y)
 		{}
 		motor[motorB] = 0;
@@ -153,13 +160,13 @@ void moveToSquare(int x, int y)
 void return_to_start()
 {
 
-	motor[motorB] = -20;
+	motor[motorB] = -35;
 	while (nMotorEncoder[motorB] > 0)
 	{}
-	motor[motorB] = 0;
+	motor[motorB] = 35;
 	nMotorEncoder[motorB] = 0;
 
-	motor[motorA] = -20;
+	motor[motorA] = -35;
 	while (nMotorEncoder[motorA] > 0)
 	{}
 	motor[motorA] = 0;
