@@ -3,37 +3,38 @@ char chessboard[8][8];
 //movement based on file
 #include "PC_FileIO.c"
 //desiredFirstElement = 0;
-bool pickUpPiece(int enc_limit_for_claw);
-void moveDownTilTouch(int enc_limit_claw);
-void moveDistancePos(tMotor motorPort, int dist, float sizeOfWheel);
-void moveDistanceNeg(tMotor motorPort, int dist, float sizeOfWheel);
+bool pickUpPiece(int enc_limit_for_claw, float SIZE_OF_WHEEL);
+void moveDownTilTouch(int enc_limit_claw, float SIZE_OF_WHEEL);
+void moveDistancePos(tMotor motorPort, int dist, float SIZE_OF_WHEEL);
+void moveDistanceNeg(tMotor motorPort, int dist, float SIZE_OF_WHEEL);
 void openClaw(int enc_limit);
 void closeClaw();
-void dropPiece();
+void dropPiece(float SIZE_OF_WHEEL);
 void moveToSquare(int x, int y);
 void return_to_start();
-bool movePiece (int ix, int iy, int fx, int fy);
-bool checkMissing(int posX, int posY);
-bool checkFound(int posX, int posY);
-bool checkUserPiece();
+bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL);
+bool checkMissing(int posX, int posY, float SIZE_OF_WHEEL);
+bool checkFound(int posX, int posY,float Z_WHEEL_SIZE, float SIZE_OF_WHEEL );
+bool checkUserPiece(int z_wheel_size, float SIZE_OF_WHEEL);
 void waitForCPPFile(int desiredFirstElement);
-void readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desiredFirstElement);
+bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desiredFirstElement,float Z_WHEEL_SIZE, float SIZE_OF_WHEEL);
+void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL);
+void writingToCPP(TFileHandle fout, int writeFirstElement,int*userMove);
 
-bool pickUpPiece (int enc_limit_for_claw)
+bool pickUpPiece (int enc_limit_for_claw, float SIZE_OF_WHEEL)
 {
 	bool successful = true;
-	int sizeOfWheel = 2.75;
 
-	moveDownTilTouch(enc_limit_for_claw);
+	moveDownTilTouch(enc_limit_for_claw, SIZE_OF_WHEEL);
 
 	if(SensorValue[S1] == 1)
 	{
-		moveDistanceNeg (motorC, 10, sizeOfWheel);
+		moveDistanceNeg (motorC, 10, SIZE_OF_WHEEL);
 		closeClaw();
 		openClaw (enc_limit_for_claw);
-		moveDistancePos (motorC, 10, sizeOfWheel);
+		moveDistancePos(motorC, 10, SIZE_OF_WHEEL);
 		closeClaw();
-		moveDistanceNeg (motorC, 10, sizeOfWheel);
+		moveDistanceNeg(motorC, 10, SIZE_OF_WHEEL);
 		return successful;
 	}
 	else
@@ -43,12 +44,11 @@ bool pickUpPiece (int enc_limit_for_claw)
 }
 
 
-void moveDownTilTouch (int enc_limit_claw)
+void moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
 {
-	int sizeOfWheel = 2.75;
 	openClaw(enc_limit_claw);
 	//opens all the way
-	int tenCmENC_LIMIT = 10 * 360/ (2*PI*sizeOfWheel);
+	int tenCmENC_LIMIT = 10 * 360/ (2*PI*SIZE_OF_WHEEL);
 	nMotorEncoder[motorC] = 0;
 	motor[motorC] = 10;
 	while(SensorValue[S1] == 0 && nMotorEncoder[motorC] < tenCmENC_LIMIT) //touch sensor
@@ -57,25 +57,25 @@ void moveDownTilTouch (int enc_limit_claw)
 }
 
 
-void moveDistancePos (tMotor motorPort, int dist, float sizeOfWheel) //we can decide on what positive is based on how we installed the motors
+void moveDistancePos (tMotor motorPort, int dist, float SIZE_OF_WHEEL) //we can decide on what positive is based on how we installed the motors
 {
 	nMotorEncoder[motorPort] = 0;
 	motor[motorPort] = 10;
 	int rotations = 0;
-	rotations = dist * 360/ (2*PI*sizeOfWheel);
+	rotations = dist * 360/ (2*PI*SIZE_OF_WHEEL);
 	while (nMotorEncoder[motorPort] < rotations)
 	{}
 
 	motor[motorPort] = 0;
 }
 
-void moveDistanceNeg (tMotor motorPort, int dist, float sizeOfWheel)
+void moveDistanceNeg (tMotor motorPort, int dist, float SIZE_OF_WHEEL)
 {
 
 	nMotorEncoder[motorPort] = 0;
 	motor[motorPort] = -10;
 	int rotations = 0;
-	rotations = -dist * 360/ (2*PI*sizeOfWheel);
+	rotations = -dist * 360/ (2*PI*SIZE_OF_WHEEL);
 	while (nMotorEncoder[motorPort] > rotations)
 	{}
 
@@ -99,15 +99,14 @@ void closeClaw()
 	motor[motorD] = 0;
 }
 
-void dropPiece()
+void dropPiece(float SIZE_OF_WHEEL)
 {
 	int enc_limit = -55;
-	int sizeOfWheel = 10;
 	int dist = 10;
-	moveDistancePos (motorC, dist, sizeOfWheel);
+	moveDistancePos (motorC, dist, SIZE_OF_WHEEL);
 
 	openClaw(enc_limit);
-	moveDistanceNeg (motorC, dist, sizeOfWheel);
+	moveDistanceNeg (motorC, dist, SIZE_OF_WHEEL);
 
 	closeClaw();
 
@@ -167,16 +166,16 @@ void return_to_start()
 
 }
 
-bool movePiece (int ix, int iy, int fx, int fy)
+bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL)
 {
 	int enc_limit_for_claw = -195;
 	bool successful = true;
 	moveToSquare(ix, iy);
-	successful = pickUpPiece(enc_limit_for_claw);
+	successful = pickUpPiece(enc_limit_for_claw, SIZE_OF_WHEEL);
 	if (successful)
 	{
 		moveToSquare(fx, fy);
-		dropPiece();
+		dropPiece(SIZE_OF_WHEEL);
 		return_to_start();
 		return true;
 	}
@@ -184,48 +183,46 @@ bool movePiece (int ix, int iy, int fx, int fy)
 		return false;
 
 }
-bool checkMissing(int posX, int posY) {
+bool checkMissing(int posX, int posY, float SIZE_OF_WHEEL) {
 	bool found = false;
 	int enc_limit = -55;
 	moveToSquare(posX, posY);
-	moveDownTilTouch(enc_limit);
+	moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
 	if (SensorValue[S1] == 0 && chessboard[posX][posY] != '.') { //the piece is not there
 		found = true;
 	}
 	return found;
 }
 
-bool checkFound(int posX, int posY){
+bool checkFound(int posX, int posY, float Z_WHEEL_SIZE,float SIZE_OF_WHEEL){
 	bool found = false;
 	int enc_limit = -55;
 	moveToSquare(posX, posY);
-	moveDownTilTouch(enc_limit);
+	moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
 	if (SensorValue[S1] == 1 && chessboard[posX][posY] == '.') { //the piece was previously there
 		found = true;
 		} else if (SensorValue[S1] == 1){ //check colour of the piece
-		if (checkUserPiece())
+		if (checkUserPiece(Z_WHEEL_SIZE,SIZE_OF_WHEEL))
 			found = true;
 	}
 	return found;
 }
 
-bool checkUserPiece() {
+bool checkUserPiece(int z_wheel_size, float SIZE_OF_WHEEL) {
 	//assume user is already in the correct piece position
 	//move some distance up to measure colour
 	float moveDist = 3.3; //3.3 cm
 	float moveUp = 0.5;
-	float z_wheel_size = 1;
-	float wheel_size = 2.75;
 
 	bool isUsers = false;
 	moveDistanceNeg(motorC, moveUp, z_wheel_size);
-	moveDistancePos(motorA, moveDist, wheel_size);
+	moveDistancePos(motorA, moveDist, SIZE_OF_WHEEL);
 
 	if (SensorValue[S2] == (int)colorRed) //piece is a user piece
 		isUsers = true;
 	//undo movements
-	moveDistanceNeg(motorA, moveDist, wheel_size);
-	moveDistancePos(motorC, moveUp, wheel_size);
+	moveDistanceNeg(motorA, moveDist, SIZE_OF_WHEEL);
+	moveDistancePos(motorC, moveUp, SIZE_OF_WHEEL);
 
 	return isUsers;
 
@@ -241,10 +238,11 @@ void waitForCPPFile(int desiredFirstElement) {
 	} while(inNum != desiredFirstElement);
 }
 
-void readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desiredFirstElement)
+bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desiredFirstElement,float Z_WHEEL_SIZE, float SIZE_OF_WHEEL)
 {
 	int numEaten = 0;
-	int x0 = 0, y0 = 0, x = 0, y = 0;
+	int x0 = 0, y0 = 0, x = 0, y = 0,endgame = 0;
+	bool over = false;
 	bool fileOkay = openReadPC(fin,"IPC_CPP_TO_RC.txt");
 	if(!fileOkay)
 	{
@@ -254,84 +252,92 @@ void readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 	else
 	{
 		waitForCPPFile(desiredFirstElement);
+		desiredFirstElement++;
 
-		for(int counter = 0; counter < 4; counter++)
-		{
-			int a = 0;
-			readIntPC(fin,a);
-			moveLocation[counter] = a;
-		}
+		readIntPC(fin,endgame);
+		over = (bool)endgame;
 
-		//check for eaten pieces
-		int checkX = moveLocation[2];
-		int checkY = moveLocation[3];
-		char checkValue = chessboard[checkX][checkY];
-		if(checkValue != '.')
+		if(!over)
 		{
-			numEaten++;
-
-			movePiece(checkX,checkY,9, numEaten);
-		}
-		//check for castling
-		else if(checkValue == 'K' &&
-			(moveLocation[3] == moveLocation[0] + 2 || moveLocation[3] == moveLocation[0] - 2))
-		{
-			if(moveLocation[3] == moveLocation[0] + 2)
+			for(int counter = 0; counter < 4; counter++)
 			{
-				movePiece(8,0,6,0);
+				int a = 0;
+				readIntPC(fin,a);
+				moveLocation[counter] = a;
 			}
-			else
+
+			//check for eaten pieces
+			int checkX = moveLocation[2];
+			int checkY = moveLocation[3];
+			char checkValue = chessboard[checkX][checkY];
+			if(checkValue != '.')
 			{
-				movePiece(0,0,3,0);
-				moveToSquare(3,0);
+				numEaten++;
+
+				movePiece(checkX,checkY,9,numEaten,SIZE_OF_WHEEL);
 			}
-		}
-
-		movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3]);
-
-
-		//checking for legal positions
-
-		string s = "";
-		bool missing = false;
-		bool found = false;
-		while(readTextPC(fin,s))
-		{
-			if(s == "piecePos")
+			//check for castling
+			else if(checkValue == 'K' &&
+				(moveLocation[3] == moveLocation[0] + 2 || moveLocation[3] == moveLocation[0] - 2))
 			{
-				readIntPC(fin,x0);
-				readIntPC(fin,y0);
-				missing = checkMissing(x0,y0);
+				if(moveLocation[3] == moveLocation[0] + 2)
+				{
+					movePiece(8,0,6,0,SIZE_OF_WHEEL);
+				}
+				else
+				{
+					movePiece(0,0,3,0,SIZE_OF_WHEEL);
+					moveToSquare(3,0);
+				}
 			}
-			if(missing)
+
+			movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3],SIZE_OF_WHEEL);
+
+
+			//checking for legal positions
+
+			string s = "";
+			bool missing = false;
+			bool found = false;
+			while(readTextPC(fin,s))
 			{
-				readTextPC(fin,s);
+				if(s == "piecePos")
+				{
+					readIntPC(fin,x0);
+					readIntPC(fin,y0);
+					missing = checkMissing(x0,y0,SIZE_OF_WHEEL);
+				}
+				if(missing)
+				{
+					readTextPC(fin,s);
+					while(s!="piecePos")
+					{
+						readIntPC(fin,x);
+						readIntPC(fin,y);
+						found = checkFound(x,y,Z_WHEEL_SIZE,SIZE_OF_WHEEL);
+						readTextPC(fin,s);
+					}
+				}
 				while(s!="piecePos")
 				{
-					readIntPC(fin,x);
-					readIntPC(fin,y);
-					found = checkFound(x,y);
 					readTextPC(fin,s);
 				}
 			}
-			while(s!="piecePos")
-			{
-				readTextPC(fin,s);
-			}
 		}
-	}
 
-	if(x0!=0||y0!=0||x!=0||y!=0)
-	{
-		char piece = chessboard[x0][y0];
-		chessboard[x0][y0] = '.';
-		chessboard[x][y] = piece;
+		if(x0!=0||y0!=0||x!=0||y!=0)
+		{
+			char piece = chessboard[x0][y0];
+			chessboard[x0][y0] = '.';
+			chessboard[x][y] = piece;
+		}
+		//updating array
+		userMove[0] = x0;
+		userMove[1] = y0;
+		userMove[2] = x;
+		userMove[3] = y;
 	}
-	//updating array
-	userMove[0] = x0;
-	userMove[1] = y0;
-	userMove[2] = x;
-	userMove[3] = y;
+	return over;
 }
 
 void initializeChessboard()
@@ -367,9 +373,76 @@ void initializeChessboard()
 	}
 }
 
+void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL)
+{
+	bool missing = false, found = false;
+	int x0 = 0, y0 = 0, x = 0, y = 0;
+	for(int j = 0; j < 7 && !missing; j++)
+	{
+		missing = checkMissing(1,j,SIZE_OF_WHEEL); //check for pawn
+		if(missing)
+		{
+			x0 = 2;
+			y0 = j;
+		}
+	}
+	if(!missing)
+	{
+		missing = checkMissing(0,1,SIZE_OF_WHEEL); //check for left horse
+		if(missing)
+		{
+			x0 = 0;
+			y0 = 1;
+		}
+	}
+	if(!missing)
+	{
+		missing = checkMissing(0,6,SIZE_OF_WHEEL); //check for right horse
+		if(missing)
+		{
+			x0 = 0;
+			y0 = 6;
+		}
+	}
+	if(missing)
+	{
+		for(int i = 2; i < 3; i++)
+		{
+			for(int j = 0; j < 7 && !found; j++)
+			{
+				found = checkFound(i,j,Z_WHEEL_SIZE,SIZE_OF_WHEEL);
+				if(missing)
+				{
+					x = i;
+					y = j;
+				}
+			}
+		}
+	}
+	if(x0!=0||y0!=0||x!=0||y!=0)
+	{
+		char piece = chessboard[x0][y0];
+		chessboard[x0][y0] = '.';
+		chessboard[x][y] = piece;
+	}
+	//updating array
+	userMove[0] = x0;
+	userMove[1] = y0;
+	userMove[2] = x;
+	userMove[3] = y;
+}
+void writingToCPP(TFileHandle fout, int writeFirstElement,int*userMove)
+{
+	writeLongPC(fout,writeFirstElement);
+	for(int counter = 0; counter < 4; counter++)
+	{
+		writeLongPC(fout,userMove[counter]);
+	}
+	writeFirstElement++;
+}
+
 task main()
 {
-
 	//X move = motorA
 	//Y move = motorB
 	//Z move = motorC
@@ -382,25 +455,36 @@ task main()
 	int userMove[4] = {0,0,0,0};
 	int desiredFirstElement = 0;
 	int writeFirstElement = 0;
+	const float SIZE_OF_WHEEL = 2.75;
+	const float Z_WHEEL_SIZE = 1.0;
 	initializeChessboard();
 	bool over = false;
 
 	waitForCPPFile(desiredFirstElement);
 
 	TFileHandle fout;
+	TFileHandle fin;
 	bool fileOkay = openWritePC(fout,"IPC_RC_TO_CPP.txt");
 	if(fileOkay)
 	{
 		writeLongPC(fout,writeFirstElement);
 		writeFirstElement++;
+		while(!getButtonPress(buttonEnter))
+		{}
+		while(getButtonPress(buttonEnter))
+		{}
+
+		initialCheck(userMove,Z_WHEEL_SIZE,SIZE_OF_WHEEL);
+
+		while(!over)
+		{
+			writingToCPP(fout, writeFirstElement,userMove);
+			over = readLocationInput(fin, moveLocation, userMove, desiredFirstElement,Z_WHEEL_SIZE, SIZE_OF_WHEEL);
+		}
 	}
-
-	while(!getButtonPress(buttonEnter))
-	{}
-	while(getButtonPress(buttonEnter))
-	{}
-
-	//check pawn then horse
-
-
+	else
+	{
+		displayString(2,"Could not write to file");
+		wait1Msec(5000);
+	}
 }
