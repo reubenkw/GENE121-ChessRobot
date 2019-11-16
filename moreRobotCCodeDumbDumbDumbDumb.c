@@ -3,7 +3,7 @@ char chessboard[8][8];
 //movement based on file
 #include "PC_FileIO.c"
 //desiredFirstElement = 0;
-bool pickUpPiece(int enc_limit_for_claw, float SIZE_OF_WHEEL);
+bool pickUpPiece(float SIZE_OF_WHEEL);
 void moveDownTilTouch(int enc_limit_claw, float SIZE_OF_WHEEL);
 void moveDistancePos(tMotor motorPort, float dist, float SIZE_OF_WHEEL);
 void moveDistanceNeg(tMotor motorPort, float dist, float SIZE_OF_WHEEL);
@@ -21,17 +21,17 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL);
 void writingToCPP(TFileHandle fout, int writeFirstElement,int*userMove);
 
-bool pickUpPiece (int enc_limit_for_claw, float SIZE_OF_WHEEL)
+bool pickUpPiece (float SIZE_OF_WHEEL)
 {
 	bool successful = true;
 
-	moveDownTilTouch(enc_limit_for_claw, SIZE_OF_WHEEL);
+	moveDownTilTouch(-250, SIZE_OF_WHEEL);
 
 	if(SensorValue[S1] == 1)
 	{
 		moveDistanceNeg (motorC, 10, SIZE_OF_WHEEL);
 		closeClaw();
-		openClaw (enc_limit_for_claw);
+		openClaw (-50);
 		moveDistancePos(motorC, 10, SIZE_OF_WHEEL);
 		closeClaw();
 		moveDistanceNeg(motorC, 10, SIZE_OF_WHEEL);
@@ -168,10 +168,9 @@ void return_to_start()
 
 bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL)
 {
-	int enc_limit_for_claw = -195;
 	bool successful = true;
 	moveToSquare(ix, iy);
-	successful = pickUpPiece(enc_limit_for_claw, SIZE_OF_WHEEL);
+	successful = pickUpPiece(SIZE_OF_WHEEL);
 	if (successful)
 	{
 		moveToSquare(fx, fy);
