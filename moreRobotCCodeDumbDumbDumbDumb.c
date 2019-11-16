@@ -29,12 +29,12 @@ bool pickUpPiece (float SIZE_OF_WHEEL)
 
 	if(SensorValue[S1] == 1)
 	{
-		moveDistanceNeg (motorC, 10, SIZE_OF_WHEEL);
+		moveDistanceNeg (motorC, 20, SIZE_OF_WHEEL);
 		closeClaw();
 		openClaw (-50);
-		moveDistancePos(motorC, 10, SIZE_OF_WHEEL);
+		moveDistancePos(motorC, 20, SIZE_OF_WHEEL);
 		closeClaw();
-		moveDistanceNeg(motorC, 10, SIZE_OF_WHEEL);
+		moveDistanceNeg(motorC, 20, SIZE_OF_WHEEL);
 		return successful;
 	}
 	else
@@ -48,9 +48,9 @@ void moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
 {
 	openClaw(enc_limit_claw);
 	//opens all the way
-	int tenCmENC_LIMIT = 10 * 360/ (2*PI*SIZE_OF_WHEEL);
+	int tenCmENC_LIMIT = 17 * 360/ (2*PI*SIZE_OF_WHEEL);
 	nMotorEncoder[motorC] = 0;
-	motor[motorC] = 10;
+	motor[motorC] = 20;
 	while(SensorValue[S1] == 0 && nMotorEncoder[motorC] < tenCmENC_LIMIT) //touch sensor
 	{}
 	motor[motorC] = 0;
@@ -60,7 +60,7 @@ void moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
 void moveDistancePos (tMotor motorPort, float dist, float SIZE_OF_WHEEL) //we can decide on what positive is based on how we installed the motors
 {
 	nMotorEncoder[motorPort] = 0;
-	motor[motorPort] = 10;
+	motor[motorPort] = 20;
 	int rotations = 0;
 	rotations = dist * 360/ (2*PI*SIZE_OF_WHEEL);
 	while (nMotorEncoder[motorPort] < rotations)
@@ -73,7 +73,7 @@ void moveDistanceNeg (tMotor motorPort, float dist, float SIZE_OF_WHEEL)
 {
 
 	nMotorEncoder[motorPort] = 0;
-	motor[motorPort] = -10;
+	motor[motorPort] = -20;
 	int rotations = 0;
 	rotations = -dist * 360/ (2*PI*SIZE_OF_WHEEL);
 	while (nMotorEncoder[motorPort] > rotations)
@@ -85,7 +85,7 @@ void moveDistanceNeg (tMotor motorPort, float dist, float SIZE_OF_WHEEL)
 void openClaw (int enc_limit)
 {
 	nMotorEncoder[motorD] = 0;
-	motor[motorD] = -10;
+	motor[motorD] = -20;
 	while(nMotorEncoder[motorD] > enc_limit)
 	{}
 	motor[motorD] = 0;
@@ -93,7 +93,7 @@ void openClaw (int enc_limit)
 
 void closeClaw()
 {
-	motor[motorD] = 10;
+	motor[motorD] = 20;
 	while (nMotorEncoder[motorD] < 0)
 	{}
 	motor[motorD] = 0;
@@ -102,7 +102,7 @@ void closeClaw()
 void dropPiece(float SIZE_OF_WHEEL)
 {
 	int enc_limit = -55;
-	int dist = 10;
+	int dist = 10; //NEEDS TESTING
 	moveDistancePos (motorC, dist, SIZE_OF_WHEEL);
 
 	openClaw(enc_limit);
@@ -186,9 +186,8 @@ bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL)
 bool checkMissing(int posX, int posY, float SIZE_OF_WHEEL) 
 {
 	bool found = false;
-	int dist = 13;
 	moveToSquare(posX, posY);
-	moveDistanceNeg(motorC, dist, 1);
+	moveDownTilTouch(-250, 1);
 	if (SensorValue[S1] == 0 && chessboard[posX][posY] != '.') { //the piece is not there
 		found = true;
 	}
