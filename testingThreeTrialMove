@@ -1,0 +1,156 @@
+void initialPos ();
+void movePiece();
+void openClaw(int enc_limit);
+void moveDownTilTouch(int enc_limit_claw, float SIZE_OF_WHEEL);
+bool testFiveTimes (int initX, int initY, int fX, int fY, bool pass, int trials);
+
+void openClaw (int enc_limit)
+{
+	nMotorEncoder[motorD] = 0;
+	motor[motorD] = -45;
+	while(nMotorEncoder[motorD] > enc_limit)
+	{}
+	motor[motorD] = 0;
+}
+
+void moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
+{
+	openClaw(enc_limit_claw);
+	//opens all the way
+	int zENC_LIMIT = 35 * 360/ (2*PI*SIZE_OF_WHEEL);
+	nMotorEncoder[motorC] = 0;
+	motor[motorC] = 45;
+	while(SensorValue[S1] == 0 && nMotorEncoder[motorC] < zENC_LIMIT) //touch sensor
+	{}
+	motor[motorC] = 0;
+}
+
+void closeClaw()
+{
+	motor[motorD] = 45;
+	while (nMotorEncoder[motorD] < 0)
+	{}
+	motor[motorD] = 0;
+}
+
+void moveDistancePos (tMotor motorPort, float dist, float SIZE_OF_WHEEL) //we can decide on what positive is based on how we installed the motors
+{
+	nMotorEncoder[motorPort] = 0;
+	motor[motorPort] = 45;
+	int rotations = 0;
+	rotations = dist * 360/ (2*PI*SIZE_OF_WHEEL);
+	while (nMotorEncoder[motorPort] < rotations)
+	{}
+
+	motor[motorPort] = 0;
+}
+
+void moveDistanceNeg (tMotor motorPort, float dist, float SIZE_OF_WHEEL)
+{
+
+	nMotorEncoder[motorPort] = 0;
+	motor[motorPort] = -45;
+	int rotations = 0;
+	rotations = -dist * 360/ (2*PI*SIZE_OF_WHEEL);
+	while (nMotorEncoder[motorPort] > rotations)
+	{}
+
+	motor[motorPort] = 0;
+}
+
+bool pickUpPiece (float SIZE_OF_WHEEL)
+{
+	bool successful = true;
+
+	moveDownTilTouch(-250, SIZE_OF_WHEEL);
+
+	if(SensorValue[S1] == 1)
+	{
+		moveDistanceNeg (motorC, 10, SIZE_OF_WHEEL);
+		closeClaw();
+		openClaw (-45);
+		moveDistancePos(motorC, 8, SIZE_OF_WHEEL);
+		closeClaw();
+		moveDistanceNeg(motorC, 15, SIZE_OF_WHEEL);
+		return successful;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void dropPiece(float SIZE_OF_WHEEL)
+{
+	int enc_limit = -45;
+	int dist = 15;
+	moveDistancePos (motorC, dist, SIZE_OF_WHEEL);
+
+	openClaw(enc_limit);
+	moveDistanceNeg (motorC, dist, SIZE_OF_WHEEL);
+	
+	closeClaw();
+}
+
+bool checkFound(int posX, int posY, float SIZE_OF_WHEEL)
+{	
+	bool found = false;
+	int enc_limit = -250;
+//	moveToSquare(posX, posY);
+	moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
+	if (SensorValue[S1] == 1 && '.' == '.') { //the piece was previously there
+		found = true;
+	}
+	return found;
+	
+}
+
+
+void initialPos() {
+		moveDistancePos(motorB, 5.72, 2.75/4);
+		moveDistancePos(motorA, 5.72, (2.75/2));
+}
+
+void movePiece() {	
+		moveDistanceNeg(motorB, 5.72, 2.75/4);
+		moveDistanceNeg(motorA, 5.72, (2.75/2));
+}
+
+//function to test the pickup and drop off five times (MAIN FUNCTION TO BE TESTED HERE)
+// values are INCORRECT for passing
+bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials) {
+	if (!pass) {
+		pass = true; //reset to true
+		if (pickUpPiece(1)) {
+			movePiece();
+      //	moveToSquare(fX, fY);
+			dropPiece(1);
+			if (!checkFound(fX, fY, 1)) {
+				moveDistanceNeg(motorC,28, 1);
+				closeClaw();
+        // moveToSquare(initX, initY);
+				pass = false;
+				trials++;
+			}
+		} else {
+			pass = false;
+			trials++;
+			closeClaw();
+			moveDistanceNeg(motorC,28, 1);
+		}
+	}
+	
+	if (trials == 3 && !pass)
+		return false;
+	
+	if (!pass && trials < 3) {
+		testFiveTimes(initX, initY, fX, fY, false, trials);
+	}
+	
+	return true;
+}
+
+task main()
+{
+	testThreeTimes(1,1,2,2,false,0);
+}
