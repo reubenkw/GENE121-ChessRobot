@@ -121,11 +121,12 @@ void dropPiece(float SIZE_OF_WHEEL)
 
 void moveToSquare(int x, int y)
 {
+	//starting position (8, 0)
 	int enc_limit_x = 0;
 	int enc_limit_y = 0;
 
-	enc_limit_x = x*(5.72) * 360/(2*PI*2.75/2);
-	enc_limit_y = y*(5.72) * 360/(2*PI*2.75/4);
+	enc_limit_x = (8-x)*(5.72) * 360/(2*PI*2.75/2);
+	enc_limit_y = -y*(5.72) * 360/(2*PI*2.75/4);
 	if (nMotorEncoder[motorA] < enc_limit_x)
 	{
 		motor[motorA] = 35;
