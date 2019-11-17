@@ -161,10 +161,9 @@ void moveToSquare(int x, int y)
 void return_to_start()
 {
 
-	motor[motorB] = -35;
-	while (nMotorEncoder[motorB] > 0)
-	{}
 	motor[motorB] = 35;
+	while (nMotorEncoder[motorB] < 0)
+	{}
 	nMotorEncoder[motorB] = 0;
 
 	motor[motorA] = -35;
