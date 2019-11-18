@@ -1,6 +1,8 @@
 void openClaw(int enc_limit);
 int moveDownTilTouch(int enc_limit_claw, float SIZE_OF_WHEEL);
 bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials);
+bool checkFound(int posX, int posY, bool movement, float SIZE_OF_WHEEL);
+char chessboard[8][8];
 
 void openClaw (int enc_limit)
 {
@@ -93,21 +95,7 @@ void dropPiece(float SIZE_OF_WHEEL)
 }
 
 
-//not same as original checkFound in dumdumdum
-bool checkFound(int posX, int posY, float SIZE_OF_WHEEL)
-{	
-	bool found = false;
-	int enc_limit = -250;
-	//	moveToSquare(posX, posY);
-	moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
-	if (SensorValue[S1] == 1 && '.' == '.') { //the piece was previously there
-		found = true;
-	}
-	moveDistanceNeg(motorC,28, 1);
-	closeClaw();
-	return found;
 
-}
 
 void moveToSquare(int row, int col)
 {
@@ -157,7 +145,7 @@ bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials
 		if (pickUpPiece(1)) {
 			moveToSquare(fX,fY);
 			dropPiece(1);
-			if (!checkFound(fX, fY, 1)) {
+			if (!checkFound(fX, fY, false, 1)) {
 
 				moveToSquare(initX, initY);
 				pass = false;
@@ -181,10 +169,55 @@ bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials
 	return true;
 }
 
+void return_to_start()
+{
+
+	motor[motorA] = 35;
+	while (nMotorEncoder[motorA] < 0)
+	{}
+	motor[motorA] = 0;
+	nMotorEncoder[motorA] = 0;
+
+	motor[motorB] = -35;
+	while (nMotorEncoder[motorB] > 0)
+	{}
+	motor[motorB] = 0;
+	nMotorEncoder[motorB] = 0;
+
+}
+
+//not same as original checkFound in dumdumdum
+bool checkFound(int posX, int posY, bool movement, float SIZE_OF_WHEEL)
+{
+	bool found = false;
+	int enc_limit = -250;
+	if (movement) {
+		moveToSquare(posX, posY);
+		moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
+		if (SensorValue[S1] == 1 && chessboard[posX][posY] == '.') { //the piece was previously there
+			found = true;
+		}
+	} else {
+		moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
+		if (SensorValue[S1] == 1) 
+			found = true;
+	}
+	
+	moveDistanceNeg(motorC,28, 1);
+	closeClaw();
+	return found;
+}
+
+bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL)
+{
+	bool successful = true;
+	successful = testThreeTimes(ix, iy, fx, fy, false, 0);
+	return_to_start();
+	return successful;
+}
+
 task main()
 {
 	SensorType[S1] = sensorEV3_Touch;
-
-	testThreeTimes(5,6,3,2,false,0);
-
+	movePiece(1,1,1,1,1);
 }
