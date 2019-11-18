@@ -29,39 +29,39 @@ using namespace std;
 
 class chessMove
 {
-private:
-	int x_init, y_init, x_fin, y_fin;
-public:
-	chessMove()
-	{
-		x_init = 0;
-		y_init = 0;
-		x_fin = 0;
-		y_fin = 0;
-	}
-	chessMove(int const x_init0, int const y_init0, int const x_fin0, int const y_fin0)
-	{
-		x_init = x_init0;
-		y_init = y_init0;
-		x_fin = x_fin0;
-		y_fin = y_fin0;
-	}
-	int get_xinit() const
-	{
-		return x_init;
-	}
-	int get_yinit() const
-	{
-		return y_init;
-	}
-	int get_xfin() const
-	{
-		return x_fin;
-	}
-	int get_yfin() const
-	{
-		return y_fin;
-	}
+	private:
+		int x_init, y_init, x_fin, y_fin;
+	public:
+		chessMove()
+		{
+			x_init = 0;
+			y_init = 0;
+			x_fin = 0;
+			y_fin = 0;
+		}
+		chessMove(int const x_init0, int const y_init0, int const x_fin0, int const y_fin0)
+		{
+			x_init = x_init0;
+			y_init = y_init0;
+			x_fin = x_fin0;
+			y_fin = y_fin0;
+		}
+		int get_xinit() const
+		{
+			return x_init;
+		}
+		int get_yinit() const
+		{
+			return y_init;
+		}
+		int get_xfin() const
+		{
+			return x_fin;
+		}
+		int get_yfin() const
+		{
+			return y_fin;
+		}
 };
 
 void waitForRCFile(int desiredFirstElement) {
@@ -158,8 +158,20 @@ void deleteLegalMove(int moveNum, int& totalLM, chessMove legalMoves[])
 	totalLM--;
 }
 
-int main() {
+void printBoard(char position[8][8])
+{
+	for(int y = 7; y >= 0; y--)
+	{
+		for(int x = 0; x < 8; x++)
+		{
+			cout << position[x][y] << " ";
+		}
+		cout << endl;
+	}
+}
 
+int main() {
+	/*
 	char position[8][8] = {
 		{'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'},
 		{'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
@@ -170,7 +182,19 @@ int main() {
 		{'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
 		{'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'}
 	};
-
+	*/
+	
+	char position[8][8] = {
+		{'R', 'P', '.', '.', '.', '.', 'p', 'r'},
+		{'N', 'P', '.', '.', '.', '.', 'p', 'n'},
+		{'B', 'P', '.', '.', '.', '.', 'p', 'b'},
+		{'Q', 'P', '.', '.', '.', '.', 'p', 'q'},
+		{'K', 'P', '.', '.', '.', '.', 'p', 'k'},
+		{'B', 'P', '.', '.', '.', '.', 'p', 'b'},
+		{'N', 'P', '.', '.', '.', '.', 'p', 'n'},
+		{'R', 'P', '.', '.', '.', '.', 'p', 'r'}
+	};
+	
 	int inNumRC = 0, outNumRC = 0, inNumPY = 0, outNumPY = 0;
 
 	//Resets output to python file
@@ -209,6 +233,7 @@ int main() {
 
 	while (!gameOver)
 	{
+		printBoard(position);
 		cout << "Waiting for your move" << endl;
 
 		//waitForRCFile(inNumRC);
@@ -230,8 +255,6 @@ int main() {
 
 		foutPY.close();
 
-		updateBoard(x_init, y_init, x_fin, y_fin, promotedPiece, position);
-
 		cout << "Waiting for python file" << endl;
 		waitForPYFile(inNumPY);
 		inNumPY++;
@@ -243,17 +266,22 @@ int main() {
 
 		if (pyCmd == "none")
 		{
+			updateBoard(x_init, y_init, x_fin, y_fin, promotedPiece, position);
+			
+			printBoard(position);
+			
 			finPY >> compMove;
 			
 			cout << compMove << endl;
 			
 			moveNotationToCoords(x_init, y_init, x_fin, y_fin, compMove);
 
+			updateBoard(x_init, y_init, x_fin, y_fin, promotedPiece, position);
+			
 			ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
 
-			foutRC << outNumRC << " " << x_init << " " << y_init << " " << x_fin << " " << y_fin;
+			foutRC << outNumRC << " " << false << " " x_init << " " << y_init << " " << x_fin << " " << y_fin;
 			
-
 			chessMove legalMoves[250];
 
 			moveNum = 0;
@@ -293,6 +321,10 @@ int main() {
 			outNumRC++;
 			foutRC.close();
 		}
+		else if(pyCmd == "Illegal_Move")
+		{
+			cout << "Invalid Move. Please rearrange the board to the above position and make valid move";
+		}
 		else
 		{
 			gameOver = true;
@@ -304,7 +336,7 @@ int main() {
 
 				ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
 
-				foutRC << outNumRC << " " << x_init << " "
+				foutRC << outNumRC << " " << true << " " << x_init << " "
 					<< y_init << " " << x_fin << " " << y_fin;
 
 				foutRC.close();

@@ -86,15 +86,5 @@ while not crntBoard.is_game_over():
 
     print(crntBoard)
 
-    #set command string to 'none'
-    #wait for in file
-    #print in file recieved
-    #read move
-    #check if move is legal or gameover
-    #if move is not legal change command to 'illigal'
-    #otherwise push move to board and calculate response
-    #push response to board
-    #send new number, command, move, list of legal moves
-
 engine.quit()
 exit()
