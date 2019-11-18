@@ -1,19 +1,23 @@
-#include "PC_File().c"
+//global array for robotC
+char chessboard[8][8];
+
+//movement based on file
+#include "PC_FileIO.c"
 //desiredFirstElement = 0;
 
-void waitForCPPFile(TFileHandle&fin, int desiredFirstElement) {
+void waitForCPPFile(int desiredFirstElement) {
 	int inNum = desiredFirstElement + 1;
 	do{
 		wait1Msec(2000);
-		readIntPC(TFileHandle,inNum);
+		TFileHandle fin;
+		readIntPC(fin,inNum);
 		//close file
 	} while(inNum != desiredFirstElement);
 }
 
-void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], int userMove[4])
-{	
+void readLocationInput(TFileHandle&fin, int*moveLocation, int*board, int*userMove, int&desiredFirstElement)
+{
 	//move location will be [xinitial,yinitial,xfinal,yfinal]
-	
 	int numEaten = 0;
 	bool fileOkay = openReadPC(fin,"location.txt");
 	if(!fileOkay)
@@ -22,16 +26,19 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 		wait1Msec(5000);
 	}
 	else
-	{	waitForCPPFile(desiredFirstElement);
-		
+	{
+		waitForCPPFile(desiredFirstElement);
+
 		for(int counter = 0; counter < 4; counter++)
 		{
-			readIntPC(TFileHandle,moveLocation[i]);
+			int a = 0;
+			readIntPC(fin,a);
+			moveLocation[counter] = a;
 		}
-		
+
 		//check for eaten pieces
-		if(board[moveLocation[2],moveLocation[3]] != 0)
 		//assume that no chess piece value is 0
+		if(board[moveLocation[2]][moveLocation[3]] != 0)
 		{
 			numEaten++;
 			movePosition(moveLocation[2],moveLocation[3]);
@@ -39,8 +46,8 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 			movePosition(9, numEaten);
 		}
 		//check for castling
-		elseif(board[moveLocation[0],moveLocation[1]] == 7 &&
-			(moveLocation[3] == moveLocation[0] + 2 || moveLocation[3] == moveLocation[0] - 2))
+		else if(board[(moveLocation[0])][(moveLocation[1])] == 7 &&
+		(moveLocation[3] == moveLocation[0] + 2 || moveLocation[3] == moveLocation[0] - 2))
 		{
 			if(moveLocation[3] == moveLocation[0] + 2)
 			{
@@ -59,13 +66,13 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 		movePosition(moveLocation[0],moveLocation[1]);
 		//pick up piece
 		movePosition(moveLocation[2],moveLocation[3]);
-		
+
 		//checking for legal positions
-		
+
 		string s = "";
 		bool missing = false;
 		bool found = false;
-		int x0 = 0; y0 = 0, x = 0, y = 0;
+		int x0 = 0, y0 = 0, x = 0, y = 0;
 		while(readIntPC(TFileHandle,s))
 		{
 			if(s=="piecePos")
@@ -73,16 +80,16 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 				readIntPC(TFileHandle,x0);
 				readIntPC(TFileHandle,y0);
 				//move(x0,y0);
-				missing = //check if piece missing through touch sensor return a boolean;
+				missing = true; //check if piece missing through touch sensor return a boolean;
 			}
 			if(missing)
 			{
 				while(readIntPC(TFileHandle,s)!="piecePos")
 				{
 					readIntPC(TFileHandle,x);
-					readIntPC(TFileHandle,y);	
+					readIntPC(TFileHandle,y);
 					//move(x,y);
-					found = //check if piece missing through touch sensor and color sensor return a boolean;
+					found = true; //check if piece missing through touch sensor and color sensor return a boolean;
 				}
 			}
 			while(readIntPC(TFileHandle,s)!="piecePos")
@@ -93,10 +100,10 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 		{
 			for(int i = 0; i < 7; i++)
 			{
-				for(int j = 0; j < 7 && !missing, j++)
-				{	
-					move(i,j);
-					missing = //check if piece missing through touch sensor return a boolean;
+				for(int j = 0; j < 7 && !missing; j++)
+				{
+					movePiece(i,j);
+					missing = true;//check if piece missing through touch sensor return a boolean;
 					if(missing)
 					{
 						x0 = i;
@@ -106,10 +113,10 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 			}
 			for(int i = 0; i < 7; i++)
 			{
-				for(int j = 0; j < 7 && !found, j++)
-				{	
-					move(i,j);
-					found = //check if piece missing through touch sensor return a boolean;
+				for(int j = 0; j < 7 && !found; j++)
+				{
+					movePiece(i,j);
+					found = true;//check if piece missing through touch sensor return a boolean;
 					if(missing)
 					{
 						x = i;
@@ -118,16 +125,47 @@ void readLocationInput(TFileHandle&fin, int moveLocation[4], int board[8][8], in
 				}
 			}
 		}
-		
+
 		//updating array
 		char piece = chessboard[x0][y0];
-		chessboard[x0][y0] = *;
+		chessboard[x0][y0] = '.';
 		chessboard[x][y] = piece;
 
-		userMove[0] = [x0];
-		userMove[1] = [y0];
-		userMove[2] = [x];
-		userMove[3] = [y];
+		userMove[0] = x0;
+		userMove[1] = y0;
+		userMove[2] = x;
+		userMove[3] = y;
+}
+
+task main()
+{
+	for(int i = 0; i < 8; i++)
+	{
+		chessboard[i][0] = 'W';
 	}
-	
+
+	for(int x = 0; x < 8; x++)
+	{
+		chessboard[x][1] = 'W';
+	}
+
+	for(int y = 2; y < 6; y++)
+	{
+		for(int x = 0; x < 8; x++) {
+			chessboard[x][y] = '.';
+		}
+	}
+
+	for(int x = 0; x < 8; x++)
+	{
+		chessboard[x][6] = 'p';
+	}
+	for(int i = 0; i < 8; i++)
+	{
+		chessboard[i][6] = 'B';
+	}
+	for(int i = 0; i < 8; i++)
+	{
+		chessboard[i][7] = 'B';
+	}
 }

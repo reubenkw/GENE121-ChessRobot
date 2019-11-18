@@ -1,17 +1,14 @@
 //global array for robotC
 
-string chessboard[][];
+char chessboard[][];
 
-chessboard[0][0] = 'R';
-chessboard[1][0] = 'N';
-chessboard[2][0] = 'B';
-chessboard[3][0] = 'Q';
-chessboard[4][0] = 'K';
-chessboard[5][0] = 'B';
-chessboard[6][0] = 'N';
-chessboard[7][0] = 'R';
+for(int i = 0; i < 8; i++)
+{
+	chessboard[i][0] = 'W';
+}
+
 for(int x = 0; x < 8; x++) {
-	chessboard[x][1] = 'P';
+	chessboard[x][1] = 'W';
 }	
 
 for(int y = 2; y < 6; y++) {
@@ -23,12 +20,11 @@ for(int y = 2; y < 6; y++) {
 for(int x = 0; x < 8; x++) {
 	chessboard[x][6] = 'p';
 }		
-
-chessboard[0][7] = 'r';
-chessboard[1][7] = 'n';
-chessboard[2][7] = 'b';
-chessboard[3][7] = 'q';
-chessboard[4][7] = 'k';
-chessboard[5][7] = 'b';
-chessboard[6][7] = 'n';
-chessboard[7][7] = 'r';
+for(int i = 0; i < 8; i++)
+{
+	chessboard[i][6] = 'B';
+}
+for(int i = 0; i < 8; i++)
+{
+	chessboard[i][7] = 'B';
+}

@@ -1,0 +1,89 @@
+bool pickUpPiece (int enc_limit_for_claw)
+{
+	bool successful = true;
+
+	moveDownTilTouch(enc_limit_for_claw);
+
+	if(SensorValue[S1] == 1)
+	{
+		moveDistanceNeg (motorC, 10, sizeofwheel);
+		closeclaw();
+		openclaw (enc_limit_for_claw);
+		moveDistancePos (motorC, 10, sizeofwheel);
+		closeclaw();
+		moveDistanceNeg (motorC, 10, sizeofwheel);
+		return successful;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+void moveDownTilTouch (enc_limit_claw)
+{
+	openClaw(enc_limit_claw);
+	//opens all the way
+	int 10cmENC_LIMIT = 10 * 360/ (2*PI*sizeofWheel);
+	int returnDist = 0;
+	nMotorEncoder[motorC] = 0;
+	motor[motorC] = 10;
+	while(SensorValue[S1] == 0 && nMotorEncoder < 10cmENC_LIMIT) //touch sensor
+	{}
+	motor[motorC] = 0;
+}
+
+
+void moveDistancePos (tmotor motorPort, int dist, int sizeofwheel) //we can decide on what positive is based on how we installed the motors
+{
+	nMotorEnocder[motorPort] = 0;
+	motor[motorPort] = 10;
+	int rotations = 0;
+	rotations = dist * 360/ (2*PI*sizeofwheel);
+	while (nMotorEncoder[motorPort] < rotations)
+	{}
+	
+	motor[motorPort] = 0;
+}
+
+void moveDistanceNeg (tmotor motorPort, int dist, int sizeofwheel)
+{
+		
+	nMotorEnocder[motorPort] = 0;
+	motor[motorPort] = -10;
+	int rotations = 0;
+	rotations = -dist * 360/ (2*PI*sizeofWheel);
+	while (nMotorEncoder[motorPort] > rotations)
+	{}
+	
+	motor[motorPort] = 0;
+}
+
+void openClaw (int enc_limit)
+{
+	nMotorEncoder[clawMotor] = 0;
+	motor[clawMotor] = 10;
+	while(nMotorEncoder[clawMotor] < enc_limit)
+	{}
+	motor[clawMotor] = 0;
+}
+
+void closeClaw()
+{
+	motor[clawMotor] = -10;
+	while (nMotorEncoder[clawMotor] > 0)
+	{}
+	motor[clawMotor] = 0;
+}
+
+void dropPiece()
+{
+	moveDistancePos (Zmotor, dist, sizeofwheel);
+
+	openClaw(enc_limit);
+	moveDistanceNeg (ZMotor, dist, sizeofwheel);
+	
+	closeClaw();
+
+}
