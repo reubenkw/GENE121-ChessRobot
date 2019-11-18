@@ -18,7 +18,7 @@ int moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
 {
 	openClaw(enc_limit_claw);
 	//opens all the way
-	int zENC_LIMIT = 35 * 360/ (2*PI*SIZE_OF_WHEEL);
+	int zENC_LIMIT = 45 * 360/ (2*PI*SIZE_OF_WHEEL);
 	nMotorEncoder[motorC] = 0;
 	motor[motorC] = 45;
 	while(SensorValue[S1] == 0 && nMotorEncoder[motorC] < zENC_LIMIT) //touch sensor
@@ -78,6 +78,7 @@ bool pickUpPiece (float SIZE_OF_WHEEL)
 	}
 	else
 	{
+		moveDistanceNeg (motorC, movedDown, SIZE_OF_WHEEL);
 		return false;
 	}
 }
@@ -94,40 +95,40 @@ void dropPiece(float SIZE_OF_WHEEL)
 	closeClaw();
 }
 
-void moveToSquare(int row, int col)
+void moveToSquare(int x, int y)
 {
 	//starting position (0, 7)
-	int enc_limit_row = 0;
-	int enc_limit_col = 0;
+	int enc_limit_x = 0;
+	int enc_limit_y = 0;
 
-	enc_limit_row = (7-row)*(5.72)* 360/(2*PI*0.8);
-	enc_limit_col = -col*(5.72) * 360/(2*PI*3.1/2);
-	if (nMotorEncoder[motorB] < enc_limit_col)
+	enc_limit_x = -x*(5.72)* 360/(2*PI*3.1/2);
+	enc_limit_y = (7-y)*(5.72) * 360/(2*PI*0.8);
+	if (nMotorEncoder[motorB] < enc_limit_y)
 	{
-		motor[motorB] = 35;
-		while (nMotorEncoder[motorB] < enc_limit_col)
+		motor[motorB] = 45;
+		while (nMotorEncoder[motorB] < enc_limit_y)
 		{}
 		motor[motorB] = 0;
 	}
-	else if (nMotorEncoder[motorB] > enc_limit_col)
+	else if (nMotorEncoder[motorB] > enc_limit_y)
 	{
-		motor[motorB] = -35;
-		while (nMotorEncoder[motorB] > enc_limit_col)
+		motor[motorB] = -45;
+		while (nMotorEncoder[motorB] > enc_limit_y)
 		{}
 		motor[motorB] = 0;
 	}
 
-	if (nMotorEncoder[motorA] < enc_limit_row)
+	if (nMotorEncoder[motorA] < enc_limit_x)
 	{
-		motor[motorA] = 35;
-		while (nMotorEncoder[motorA] < enc_limit_row)
+		motor[motorA] = 45;
+		while (nMotorEncoder[motorA] < enc_limit_x)
 		{}
 		motor[motorA] = 0;
 	}
-	else if (nMotorEncoder[motorA] > enc_limit_row)
+	else if (nMotorEncoder[motorA] > enc_limit_x)
 	{
-		motor[motorA] = -35;
-		while (nMotorEncoder[motorA] > enc_limit_row)
+		motor[motorA] = -45;
+		while (nMotorEncoder[motorA] > enc_limit_x)
 		{}
 		motor[motorA] = 0;
 	}
@@ -142,17 +143,22 @@ bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials
 		if (pickUpPiece(1)) {
 			moveToSquare(fX,fY);
 			dropPiece(1);
-			if (!checkFound(fX, fY, false, 1)) {
-
+			bool passFound = false;
+			
+			for (int tried = 0; tried < 3 && !passFound; tried++) {
+				passFound = checkFound(fX, fY, false, 1);
+			}
+			
+			if (!passFound) {
 				moveToSquare(initX, initY);
 				pass = false;
 				trials++;
 			}
-			} else {
+			
+		} else {
 			pass = false;
 			trials++;
 			closeClaw();
-			moveDistanceNeg(motorC,15, 1);
 		}
 	}
 
@@ -169,13 +175,13 @@ bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials
 void return_to_start()
 {
 
-	motor[motorA] = 35;
+	motor[motorA] = 45;
 	while (nMotorEncoder[motorA] < 0)
 	{}
 	motor[motorA] = 0;
 	nMotorEncoder[motorA] = 0;
 
-	motor[motorB] = -35;
+	motor[motorB] = -45;
 	while (nMotorEncoder[motorB] > 0)
 	{}
 	motor[motorB] = 0;
