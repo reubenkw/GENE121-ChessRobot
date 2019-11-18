@@ -94,9 +94,6 @@ void dropPiece(float SIZE_OF_WHEEL)
 	closeClaw();
 }
 
-
-
-
 void moveToSquare(int row, int col)
 {
 	//starting position (7, 0)
@@ -108,29 +105,29 @@ void moveToSquare(int row, int col)
 	if (nMotorEncoder[motorB] < enc_limit_row)
 	{
 		motor[motorB] = 35;
-		while (nMotorEncoder[motorB] < enc_limit_row)
+		while (nMotorEncoder[motorB] < enc_limit_col)
 		{}
 		motor[motorB] = 0;
 	}
-	else if (nMotorEncoder[motorB] > enc_limit_row)
+	else if (nMotorEncoder[motorB] > enc_limit_col)
 	{
 		motor[motorB] = -35;
-		while (nMotorEncoder[motorB] > enc_limit_row)
+		while (nMotorEncoder[motorB] > enc_limit_col)
 		{}
 		motor[motorB] = 0;
 	}
 
-	if (nMotorEncoder[motorA] < enc_limit_col)
+	if (nMotorEncoder[motorA] < enc_limit_row)
 	{
 		motor[motorA] = 35;
-		while (nMotorEncoder[motorA] < enc_limit_col)
+		while (nMotorEncoder[motorA] < enc_limit_row)
 		{}
 		motor[motorA] = 0;
 	}
-	else if (nMotorEncoder[motorA] > enc_limit_col)
+	else if (nMotorEncoder[motorA] > enc_limit_row)
 	{
 		motor[motorA] = -35;
-		while (nMotorEncoder[motorA] > enc_limit_col)
+		while (nMotorEncoder[motorA] > enc_limit_row)
 		{}
 		motor[motorA] = 0;
 	}
@@ -219,5 +216,5 @@ bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL)
 task main()
 {
 	SensorType[S1] = sensorEV3_Touch;
-	movePiece(1,1,1,1,1);
+	movePiece(3,6,3,3,1);
 }
