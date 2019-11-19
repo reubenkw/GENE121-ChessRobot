@@ -220,12 +220,14 @@ bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL, float & mov
 
 bool checkMissing(int posX, int posY, float SIZE_OF_WHEEL) {
 	bool found = false;
-	int enc_limit = -55;
+	int enc_limit = -250;
+	int zDist = 0;
 	moveToSquare(posX, posY);
-	moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
+	zDist = moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
 	if (SensorValue[S1] == 0 && chessboard[posX][posY] != '.') { //the piece is not there
 		found = true;
 	}
+	moveDistanceNeg(motorC, zDist, 1);
 	return found;
 }
 
