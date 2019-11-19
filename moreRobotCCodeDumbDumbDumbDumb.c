@@ -240,7 +240,8 @@ bool checkFound(int posX, int posY, bool movement, float SIZE_OF_WHEEL)
 		moveToSquare(posX, posY);
 		zDist = moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
 		if (SensorValue[S1] == 1 && chessboard[posX][posY] == '.') { //the piece was previously there
-			found = true;
+			if (checkUserPiece(1, 0.8, zDist))
+				found = true;
 		}
 	} else {
 		zDist = moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
@@ -253,22 +254,21 @@ bool checkFound(int posX, int posY, bool movement, float SIZE_OF_WHEEL)
 	return found;
 }
 
-bool checkUserPiece(int z_wheel_size, float SIZE_OF_WHEEL) {
+bool checkUserPiece(int z_wheel_size, float SIZE_OF_WHEEL, float&moveDown) {
 	//assume user is already in the correct piece position
 	//move some distance up to measure colour
 	//URGENT: BASED OFF ARBITRARY VALUES
-	float moveDist = 3.3; //3.3 cm
-	float moveUp = 0.5;
+	float moveDist = 3.5/(2*PI)*360; //3.5 cm
 
 	bool isUsers = false;
-	moveDistanceNeg(motorC, moveUp, z_wheel_size);
+	moveDistanceNeg(motorC, moveDown, z_wheel_size);
 	moveDistancePos(motorA, moveDist, SIZE_OF_WHEEL);
 
 	if (SensorValue[S2] == (int)colorRed) //piece is a user piece
 		isUsers = true;
 	//undo movements
+	moveDistancePos(motorC, moveDown, SIZE_OF_WHEEL);
 	moveDistanceNeg(motorA, moveDist, SIZE_OF_WHEEL);
-	moveDistancePos(motorC, moveUp, SIZE_OF_WHEEL);
 
 	return isUsers;
 
