@@ -3,58 +3,58 @@ char chessboard[8][8];
 //movement based on file
 #include "PC_FileIO.c"
 //desiredFirstElement = 0;
-bool pickUpPiece(float SIZE_OF_WHEEL, float & movedDown);
-int moveDownTilTouch(int enc_limit_claw, float SIZE_OF_WHEEL);
-void moveDistancePos(tMotor motorPort, float dist, float SIZE_OF_WHEEL);
-void moveDistanceNeg(tMotor motorPort, float dist, float SIZE_OF_WHEEL);
+bool pickUpPiece(float & movedDown);
+int moveDownTilTouch(int enc_limit_claw);
+void moveDistancePos(tMotor motorPort, float dist);
+void moveDistanceNeg(tMotor motorPort, float dist);
 void openClaw(int enc_limit);
 void closeClaw();
-void dropPiece(float SIZE_OF_WHEEL, float & movedDown);
+void dropPiece(float & movedDown);
 void moveToSquare(int x, int y);
 void return_to_start();
-bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL, float & movedDown);
-bool checkMissing(int posX, int posY, float SIZE_OF_WHEEL);
-bool checkFound(int posX, int posY, bool movement, float SIZE_OF_WHEEL);
-bool checkUserPiece(int z_wheel_size, float SIZE_OF_WHEEL);
+bool movePiece (int ix, int iy, int fx, int fy, float & movedDown);
+bool checkMissing(int posX, int posY);
+bool checkFound(int posX, int posY, bool movement);
+bool checkUserPiece(float&moveDown);
 void waitForCPPFile(int desiredFirstElement);
-bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desiredFirstElement,float Z_WHEEL_SIZE, float SIZE_OF_WHEEL);
-void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL);
+bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desiredFirstElement, float & movedDown);
+void initialCheck(int*userMove);
 void writingToCPP(TFileHandle fout, int writeFirstElement,int*userMove);
-bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials, float & movedDown)
+bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials, float & movedDown);
 
-bool pickUpPiece (float SIZE_OF_WHEEL, float & movedDown)
+bool pickUpPiece (float & movedDown)
 {
 	bool successful = true;
 
-	movedDown = moveDownTilTouch(-250, SIZE_OF_WHEEL);
+	movedDown = moveDownTilTouch(-250);
 
 
 	if(SensorValue[S1] == 1)
 	{
-		moveDistanceNeg (motorC, movedDown, SIZE_OF_WHEEL);
+		moveDistanceNeg (motorC, movedDown);
 		closeClaw();
 		openClaw (-45);
 
-		moveDistancePos(motorC, movedDown, SIZE_OF_WHEEL);
+		moveDistancePos(motorC, movedDown);
 		closeClaw();
-		moveDistanceNeg(motorC, movedDown, SIZE_OF_WHEEL);
+		moveDistanceNeg(motorC, movedDown);
 
 
 		return successful;
 	}
 	else
 	{
-		moveDistanceNeg (motorC, movedDown, SIZE_OF_WHEEL);
+		moveDistanceNeg (motorC, movedDown);
 		return false;
 	}
 }
 
 
-int moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
+int moveDownTilTouch (int enc_limit_claw)
 {
 	openClaw(enc_limit_claw);
 	//opens all the way
-	int zENC_LIMIT = 20 * 360/ (2*PI*SIZE_OF_WHEEL);
+	int zENC_LIMIT = 96;
 	nMotorEncoder[motorC] = 0;
 	motor[motorC] = 45;
 	while(SensorValue[S1] == 0 && nMotorEncoder[motorC] < zENC_LIMIT) //touch sensor
@@ -64,7 +64,7 @@ int moveDownTilTouch (int enc_limit_claw, float SIZE_OF_WHEEL)
 }
 
 
-void moveDistancePos (tMotor motorPort, float dist, float SIZE_OF_WHEEL) //we can decide on what positive is based on how we installed the motors
+void moveDistancePos (tMotor motorPort, float dist) //we can decide on what positive is based on how we installed the motors
 {
 	nMotorEncoder[motorPort] = 0;
 	int rotations = 0;
@@ -76,7 +76,7 @@ void moveDistancePos (tMotor motorPort, float dist, float SIZE_OF_WHEEL) //we ca
 	motor[motorPort] = 0;
 }
 
-void moveDistanceNeg (tMotor motorPort, float dist, float SIZE_OF_WHEEL)
+void moveDistanceNeg (tMotor motorPort, float dist)
 {
 
 	nMotorEncoder[motorPort] = 0;
@@ -106,14 +106,14 @@ void closeClaw()
 	motor[motorD] = 0;
 }
 
-void dropPiece(float SIZE_OF_WHEEL, float & movedDown)
+void dropPiece(float & movedDown)
 {
 	int enc_limit = -45;
 
-	moveDistancePos (motorC, movedDown, SIZE_OF_WHEEL);
+	moveDistancePos (motorC, movedDown);
 
 	openClaw(enc_limit);
-	moveDistanceNeg (motorC, movedDown, SIZE_OF_WHEEL);
+	moveDistanceNeg (motorC, movedDown);
 
 	closeClaw();
 }
@@ -124,8 +124,8 @@ void moveToSquare(int x, int y)
 	int enc_limit_x = 0;
 	int enc_limit_y = 0;
 
-	enc_limit_x = -x*(5.72)* 360/(2*PI*3.1/2);
-	enc_limit_y = (7-y)*(5.72) * 360/(2*PI*0.8);
+	enc_limit_x = -x*(217);
+	enc_limit_y = (7-y)*378;
 	if (nMotorEncoder[motorB] < enc_limit_y)
 	{
 		motor[motorB] = 45;
@@ -161,13 +161,13 @@ bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials
 	if (!pass) {
 		pass = true; //reset to true
 		moveToSquare(initX, initY);
-		if (pickUpPiece(1, movedDown)) {
+		if (pickUpPiece(movedDown)) {
 			moveToSquare(fX,fY);
-			dropPiece(1, movedDown);
+			dropPiece(movedDown);
 			bool passFound = false;
 
 			for (int tried = 0; tried < 3 && !passFound; tried++) {
-				passFound = checkFound(fX, fY, false, 1);
+				passFound = checkFound(fX, fY, false);
 			}
 
 			if (!passFound) {
@@ -210,7 +210,7 @@ void return_to_start()
 
 }
 
-bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL, float & movedDown)
+bool movePiece (int ix, int iy, int fx, int fy, float & movedDown)
 {
 	bool successful = true;
 	successful = testThreeTimes(ix, iy, fx, fy, false, 0, movedDown);
@@ -218,60 +218,59 @@ bool movePiece (int ix, int iy, int fx, int fy, float SIZE_OF_WHEEL, float & mov
 	return successful;
 }
 
-bool checkMissing(int posX, int posY, float SIZE_OF_WHEEL) {
+bool checkMissing(int posX, int posY) {
 	bool found = false;
 	int enc_limit = -250;
 	int zDist = 0;
 	moveToSquare(posX, posY);
-	zDist = moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
+	zDist = moveDownTilTouch(enc_limit);
 	if (SensorValue[S1] == 0 && chessboard[posX][posY] != '.') { //the piece is not there
 		found = true;
 	}
-	moveDistanceNeg(motorC, zDist, 1);
+	moveDistanceNeg(motorC, zDist);
 	return found;
 }
 
-bool checkFound(int posX, int posY, bool movement, float SIZE_OF_WHEEL)
+bool checkFound(int posX, int posY, bool movement)
 {
 	bool found = false;
 	int enc_limit = -250;
 	float zDist = 0;
 	if (movement) {
 		moveToSquare(posX, posY);
-		zDist = moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
+		zDist = moveDownTilTouch(enc_limit);
 		if (SensorValue[S1] == 1 && chessboard[posX][posY] == '.') { //the piece was previously there
-			if (checkUserPiece(1, 0.8, zDist))
+			if (checkUserPiece(zDist))
 				found = true;
 		}
 	} else {
-		zDist = moveDownTilTouch(enc_limit, SIZE_OF_WHEEL);
+		zDist = moveDownTilTouch(enc_limit);
 		if (SensorValue[S1] == 1)
 			found = true;
 	}
 
-	moveDistanceNeg(motorC,zDist, 1);
+	moveDistanceNeg(motorC,zDist);
 	closeClaw();
 	return found;
 }
 
-bool checkUserPiece(int z_wheel_size, float SIZE_OF_WHEEL, float&moveDown) {
+bool checkUserPiece(float&moveDown) {
 	//assume user is already in the correct piece position
 	//move some distance up to measure colour
-	//URGENT: BASED OFF ARBITRARY VALUES
-	float moveDist = 3.5/(2*PI)*360; //3.5 cm
+
+	float moveDist = 96;
 
 	bool isUsers = false;
-	moveDistanceNeg(motorC, moveDown, z_wheel_size);
-	moveDistancePos(motorA, moveDist, SIZE_OF_WHEEL);
+	moveDistanceNeg(motorC, moveDown);
+	moveDistancePos(motorA, moveDist);
 
 	if (SensorValue[S2] == (int)colorRed) //piece is a user piece
 		isUsers = true;
 	//undo movements
-	moveDistancePos(motorC, moveDown, SIZE_OF_WHEEL);
-	moveDistanceNeg(motorA, moveDist, SIZE_OF_WHEEL);
+	moveDistancePos(motorC, moveDown);
+	moveDistanceNeg(motorA, moveDist);
 
 	return isUsers;
-
 }
 
 void waitForCPPFile(int desiredFirstElement) {
@@ -284,7 +283,7 @@ void waitForCPPFile(int desiredFirstElement) {
 	} while(inNum != desiredFirstElement);
 }
 
-bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desiredFirstElement,float Z_WHEEL_SIZE, float SIZE_OF_WHEEL)
+bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desiredFirstElement, float & movedDown)
 {
 	int numEaten = 0;
 	int x0 = 0, y0 = 0, x = 0, y = 0,endgame = 0;
@@ -318,7 +317,7 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 			char checkValue = chessboard[checkX][checkY];
 			if(checkValue != '.')
 			{
-				movePiece(checkX,checkY,0,8,SIZE_OF_WHEEL, movedDown);
+				movePiece(checkX,checkY,0,8, movedDown);
 			}
 			//check for castling
 			else if(checkValue == 'K' &&
@@ -326,15 +325,15 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 			{
 				if(moveLocation[3] == moveLocation[0] + 2)
 				{
-					movePiece(7,7,5,7,SIZE_OF_WHEEL, movedDown);
+					movePiece(7,7,5,7, movedDown);
 				}
 				else
 				{
-					movePiece(0,7,2,7,SIZE_OF_WHEEL, movedDown);
+					movePiece(0,7,2,7, movedDown);
 				}
 			}
 
-			bool successfulMove = movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3],SIZE_OF_WHEEL, movedDown);
+			bool successfulMove = movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3], movedDown);
 
 			if(!successfulMove)
 			{
@@ -356,7 +355,7 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 				{
 					readIntPC(fin,x0);
 					readIntPC(fin,y0);
-					missing = checkMissing(x0,y0,SIZE_OF_WHEEL);
+					missing = checkMissing(x0,y0);
 				}
 				if(missing)
 				{
@@ -365,7 +364,7 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 					{
 						readIntPC(fin,x);
 						readIntPC(fin,y);
-						found = checkFound(x,y,Z_WHEEL_SIZE,SIZE_OF_WHEEL); //BASED OFF OLD CHECK FOUND
+						found = checkFound(x,y,true); //BASED OFF OLD CHECK FOUND
 						readTextPC(fin,s);
 					}
 				}
@@ -424,13 +423,13 @@ void initializeChessboard()
 	}
 }
 
-void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL)
+void initialCheck(int*userMove)
 {
 	bool missing = false, found = false;
 	int x0 = 0, y0 = 0, x = 0, y = 0;
 	for(int j = 0; j < 7 && !missing; j++)
 	{
-		missing = checkMissing(1,j,SIZE_OF_WHEEL); //check for pawn
+		missing = checkMissing(1,j); //check for pawn
 		if(missing)
 		{
 			x0 = 2;
@@ -439,7 +438,7 @@ void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL)
 	}
 	if(!missing)
 	{
-		missing = checkMissing(0,1,SIZE_OF_WHEEL); //check for left horse
+		missing = checkMissing(0,1); //check for left horse
 		if(missing)
 		{
 			x0 = 0;
@@ -448,7 +447,7 @@ void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL)
 	}
 	if(!missing)
 	{
-		missing = checkMissing(0,6,SIZE_OF_WHEEL); //check for right horse
+		missing = checkMissing(0,6); //check for right horse
 		if(missing)
 		{
 			x0 = 0;
@@ -461,7 +460,7 @@ void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL)
 		{
 			for(int j = 0; j < 7 && !found; j++)
 			{
-				found = checkFound(i,j,Z_WHEEL_SIZE,SIZE_OF_WHEEL); //BASED OFF OLD CHECKFOUND
+				found = checkFound(i,j,true); //BASED OFF OLD CHECKFOUND
 				if(missing)
 				{
 					x = i;
@@ -508,8 +507,6 @@ task main()
 	int userMove[4] = {0,0,0,0};
 	int desiredFirstElement = 0;
 	int writeFirstElement = 0;
-	const float SIZE_OF_WHEEL = 2.75;
-	const float Z_WHEEL_SIZE = 1.0;
 	initializeChessboard();
 	bool over = false;
 
@@ -527,12 +524,12 @@ task main()
 		while(getButtonPress(buttonEnter))
 		{}
 
-		initialCheck(userMove,Z_WHEEL_SIZE,SIZE_OF_WHEEL);
+		initialCheck(userMove);
 
 		while(!over)
 		{
 			writingToCPP(fout,writeFirstElement,userMove);
-			over = readLocationInput(fin, moveLocation, userMove, desiredFirstElement,Z_WHEEL_SIZE, SIZE_OF_WHEEL);
+			over = readLocationInput(fin, moveLocation, userMove, desiredFirstElement, movedDown);
 		}
 	}
 	else
