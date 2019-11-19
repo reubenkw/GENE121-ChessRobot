@@ -254,6 +254,7 @@ bool checkFound(int posX, int posY, bool movement, float SIZE_OF_WHEEL)
 bool checkUserPiece(int z_wheel_size, float SIZE_OF_WHEEL) {
 	//assume user is already in the correct piece position
 	//move some distance up to measure colour
+	//URGENT: BASED OFF ARBITRARY VALUES
 	float moveDist = 3.3; //3.3 cm
 	float moveUp = 0.5;
 
@@ -315,7 +316,7 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 			char checkValue = chessboard[checkX][checkY];
 			if(checkValue != '.')
 			{
-				movePiece(checkX,checkY,0,8,SIZE_OF_WHEEL);
+				movePiece(checkX,checkY,0,8,SIZE_OF_WHEEL, movedDown);
 			}
 			//check for castling
 			else if(checkValue == 'K' &&
@@ -323,15 +324,15 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 			{
 				if(moveLocation[3] == moveLocation[0] + 2)
 				{
-					movePiece(7,7,5,7,SIZE_OF_WHEEL);
+					movePiece(7,7,5,7,SIZE_OF_WHEEL, movedDown);
 				}
 				else
 				{
-					movePiece(0,7,2,7,SIZE_OF_WHEEL);
+					movePiece(0,7,2,7,SIZE_OF_WHEEL, movedDown);
 				}
 			}
 
-			bool successfulMove = movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3],SIZE_OF_WHEEL);
+			bool successfulMove = movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3],SIZE_OF_WHEEL, movedDown);
 
 			if(!successfulMove)
 			{
@@ -362,7 +363,7 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 					{
 						readIntPC(fin,x);
 						readIntPC(fin,y);
-						found = checkFound(x,y,Z_WHEEL_SIZE,SIZE_OF_WHEEL);
+						found = checkFound(x,y,Z_WHEEL_SIZE,SIZE_OF_WHEEL); //BASED OFF OLD CHECK FOUND
 						readTextPC(fin,s);
 					}
 				}
@@ -458,7 +459,7 @@ void initialCheck(int*userMove, float Z_WHEEL_SIZE, float SIZE_OF_WHEEL)
 		{
 			for(int j = 0; j < 7 && !found; j++)
 			{
-				found = checkFound(i,j,Z_WHEEL_SIZE,SIZE_OF_WHEEL);
+				found = checkFound(i,j,Z_WHEEL_SIZE,SIZE_OF_WHEEL); //BASED OFF OLD CHECKFOUND
 				if(missing)
 				{
 					x = i;
