@@ -255,24 +255,27 @@ bool checkFound(int posX, int posY, bool movement)
 	return found;
 }
 
-bool checkUserPiece(float&moveDown) {
+bool checkUserPiece(int z_wheel_size, float SIZE_OF_WHEEL, float&moveDown) {
 	//assume user is already in the correct piece position
 	//move some distance up to measure colour
 
 	float moveDist = 120;
+	float moveDistZ = 100;
 
 	bool isUsers = false;
 
-	moveDistanceNeg(motorC, 100);
+	moveDistanceNeg(motorC, moveDistZ);
 	moveDistancePos(motorA, moveDist);
+	moveDistancePos(motorC, moveDistZ);
 	wait1Msec(500);
 	
 	if (SensorValue[S2] == (int)colorRed) //piece is a user piece
 		isUsers = true;
 	//undo movements
 	wait1Msec(500);
+	moveDistanceNeg(motorC, moveDistZ);
 	moveDistanceNeg(motorA, moveDist);
-	moveDistancePos(motorC, 100);
+	moveDistancePos(motorC, moveDistZ);
 
 	return isUsers;
 }
