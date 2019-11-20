@@ -33,7 +33,7 @@ bool pickUpPiece (float & movedDown)
 	{
 		moveDistanceNeg (motorC, movedDown);
 		closeClaw();
-		openClaw (-45);
+		openClaw (-65);
 
 		moveDistancePos(motorC, movedDown);
 		closeClaw();
@@ -108,7 +108,7 @@ void closeClaw()
 
 void dropPiece(float & movedDown)
 {
-	int enc_limit = -45;
+	int enc_limit = -65;
 
 	moveDistancePos (motorC, movedDown);
 
@@ -125,7 +125,7 @@ void moveToSquare(int x, int y)
 	int enc_limit_y = 0;
 
 	enc_limit_x = -x*(217);
-	enc_limit_y = (7-y)*378;
+	enc_limit_y = (7-y)*420;
 	if (nMotorEncoder[motorB] < enc_limit_y)
 	{
 		motor[motorB] = 45;
@@ -239,6 +239,7 @@ bool checkFound(int posX, int posY, bool movement)
 	if (movement) {
 		moveToSquare(posX, posY);
 		zDist = moveDownTilTouch(enc_limit);
+		wait1Msec(100);
 		if (SensorValue[S1] == 1 && chessboard[posX][posY] == '.') { //the piece was previously there
 			if (checkUserPiece(zDist))
 				found = true;
@@ -258,17 +259,20 @@ bool checkUserPiece(float&moveDown) {
 	//assume user is already in the correct piece position
 	//move some distance up to measure colour
 
-	float moveDist = 96;
+	float moveDist = 120;
 
 	bool isUsers = false;
-	moveDistanceNeg(motorC, moveDown);
-	moveDistancePos(motorA, moveDist);
 
+	moveDistanceNeg(motorC, 100);
+	moveDistancePos(motorA, moveDist);
+	wait1Msec(500);
+	
 	if (SensorValue[S2] == (int)colorRed) //piece is a user piece
 		isUsers = true;
 	//undo movements
-	moveDistancePos(motorC, moveDown);
+	wait1Msec(500);
 	moveDistanceNeg(motorA, moveDist);
+	moveDistancePos(motorC, 100);
 
 	return isUsers;
 }
