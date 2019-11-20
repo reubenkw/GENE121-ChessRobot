@@ -391,6 +391,7 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, int&desi
 		userMove[2] = x;
 		userMove[3] = y;
 	}
+	closeFilePC("IPC_CPP_TO_RC.txt");
 	return over;
 }
 
@@ -533,6 +534,7 @@ task main()
 		while(!over)
 		{
 			writingToCPP(fout,writeFirstElement,userMove);
+			closeFilePC("IPC_RC_TO_CPP.txt");
 			over = readLocationInput(fin, moveLocation, userMove, desiredFirstElement, movedDown);
 		}
 	}
