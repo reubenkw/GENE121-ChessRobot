@@ -123,8 +123,8 @@ void moveToSquare(int x, int y)
 	int enc_limit_x = 0;
 	int enc_limit_y = 0;
 
-	enc_limit_x = -x*(200);
-	enc_limit_y = (7-y)*410;
+	enc_limit_x = -x*(220);
+	enc_limit_y = (7-y)*405;
 	if (nMotorEncoder[motorB] < enc_limit_y)
 	{
 		motor[motorB] = 45;
