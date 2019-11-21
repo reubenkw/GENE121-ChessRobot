@@ -247,9 +247,6 @@ bool checkFound(int posX, int posY, bool movement)
 				if (checkUserPiece(zDist))
 					found = true;
 			}
-		} else if (SensorValue[S1] == 1 && chessboard[posX][posY] != '.')  {
-			if (checkUserPiece(zDist))
-				found = true;
 		}
 	} else {
 		zDist = moveDownTilTouch(enc_limit);
