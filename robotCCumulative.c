@@ -350,10 +350,18 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, float & 
 	writeDebugStreamLine("checked for eaten pieces");
 
 	//finished our turn
+	time1[T1] = 0;
+
 	while(!getButtonPress(buttonEnter))
-	{}
+	{
+		if(time1[T1]>180000)
+			playSound(soundBeepBeep);
+	}
 	while(getButtonPress(buttonEnter))
-	{}
+	{
+		if(time1[T1]>180000)
+			playSound(soundBeepBeep);
+	}
 
 	writeDebugStreamLine("waited for user turn");
 	string s = "";
@@ -607,6 +615,14 @@ task main()
 		update = initializeChessboard(finRobot);
 		closeFilePC(finRobot);
 
+		writeDebugStreamLine("%d",update);
+		for(int i = 0; i < 8; i++)
+		{
+			for(int j = 0; j < 8; j++)
+			{
+				writeDebugStreamLine("%d",(int)chessboard[i][j]);
+			}
+		}
 		if(update == 0)
 		{
 			while(!getButtonPress(buttonEnter))
