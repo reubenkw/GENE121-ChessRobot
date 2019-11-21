@@ -240,13 +240,18 @@ bool checkFound(int posX, int posY, bool movement)
 		moveToSquare(posX, posY);
 		zDist = moveDownTilTouch(enc_limit);
 		wait1Msec(100);
-		if (SensorValue[S1] == 1 && chessboard[posX][posY] == '.') { //the piece was previously there
-			found = true;
-			} else if (SensorValue[S1] == 1 && chessboard[posX][posY] != '.')  {
+		if (SensorValue[S1] == 1) { //the piece was previously there
+			if (chessboard[posX][posY] == '.') {
+				found = true;
+			} else {
+				if (checkUserPiece(zDist))
+					found = true;
+			}
+		} else if (SensorValue[S1] == 1 && chessboard[posX][posY] != '.')  {
 			if (checkUserPiece(zDist))
 				found = true;
 		}
-		} else {
+	} else {
 		zDist = moveDownTilTouch(enc_limit);
 		if (SensorValue[S1] == 1)
 			found = true;
