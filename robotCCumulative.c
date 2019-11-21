@@ -401,6 +401,13 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, float & 
 		char piece = chessboard[x0][y0];
 		chessboard[x0][y0] = '.';
 		chessboard[x][y] = piece;
+		for(int i = 0; i < 8; i++)
+		{
+			for(int j = 0; j < 8; j++)
+			{
+				writeDebugStreamLine("%d",(int)chessboard[i][j]);
+			}
+		}
 	}
 	else
 	{
@@ -516,6 +523,13 @@ void initialCheck(int*userMove)
 		chessboard[x0][y0] = '.';
 		chessboard[x][y] = piece;
 		writeDebugStreamLine("updated chessboard");
+		for(int i = 0; i < 8; i++)
+		{
+			for(int j = 0; j < 8; j++)
+			{
+				writeDebugStreamLine("%d",(int)chessboard[i][j]);
+			}
+		}
 	}
 	else
 	{
