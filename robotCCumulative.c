@@ -362,36 +362,38 @@ bool readLocationInput(TFileHandle fin, int*moveLocation, int*userMove, float & 
 	//checking legal moves
 	if(!readTextPC(fin,s))
 		over = true;
-
-	while(readTextPC(fin,s))
+	if(!over)
 	{
-		readIntPC(fin,x0);
-		readIntPC(fin,y0);
-		writeDebugStreamLine("checking if %d,%d was moved",x0,y0);
-		missing = checkMissing(x0,y0);
-
-		if(missing)
+		do
 		{
+			readIntPC(fin,x0);
+			readIntPC(fin,y0);
+			writeDebugStreamLine("checking if %d,%d was moved",x0,y0);
+			missing = checkMissing(x0,y0);
 
-			readTextPC(fin,s);
-			while(s!="piecePos"&&!found)
+			if(missing)
 			{
-				readIntPC(fin,x);
-				readIntPC(fin,y);
+				writeDebugStreamLine("%d,%d was moved",x0,y0);
+				readTextPC(fin,s);
+				do
+				{
+					readIntPC(fin,x);
+					readIntPC(fin,y);
+					writeDebugStreamLine("checking if %d,%d was moved to %d,%d",x0,y0,x,y);
+					found = checkFound(x,y,true);
+					writeDebugStreamLine("checking final location that user can move");
+					readTextPC(fin,s);
+				}while(s!="piecePos"&&!found);
 				writeDebugStreamLine("checking if %d,%d was moved to %d,%d",x0,y0,x,y);
-				found = checkFound(x,y,true);
-				writeDebugStreamLine("checking final location that user can move");
-				readTextPC(fin,s);
 			}
-			writeDebugStreamLine("checking if %d,%d was moved to %d,%d",x0,y0,x,y);
-		}
-		else
-		{
-			while(s!="piecePos")
+			else
 			{
-				readTextPC(fin,s);
+				while(s!="piecePos")
+				{
+					readTextPC(fin,s);
+				}
 			}
-		}
+		}while(!missing && !found);
 	}
 	writeDebugStreamLine("finished checking user move");
 	if((x0!=0||y0!=0||x!=0||y!=0)&&missing&&found)
@@ -555,7 +557,7 @@ void writingToRobot(TFileHandle fout, int update)
 	{
 		for(int j = 0; j < 8; j++)
 		{
-			writeLongPC(fout,chessboard[i][j]);
+			writeCharPC(fout,chessboard[i][j]);
 		}
 	}
 
@@ -591,7 +593,6 @@ task main()
 		update = initializeChessboard(finRobot);
 		closeFilePC(finRobot);
 
-
 		if(update == 0)
 		{
 			while(!getButtonPress(buttonEnter))
@@ -605,17 +606,21 @@ task main()
 			writingToRobot(foutRobot,update+1);
 			closeFilePC(foutRobot);
 		}
-		end = readLocationInput(finCPP, moveLocation, userMove, movedDown);
-		closeFilePC(finCPP);
-		writeDebugStreamLine("finished read location input");
-
-		if(!end)
+		else
 		{
-			writingToCPP(foutCPP,update+1,userMove);
-			closeFilePC(foutCPP);
-			writingToRobot(foutRobot, update + 1);
-			closeFilePC(foutRobot);
-			writeDebugStreamLine("updated chessboard");
+			end = readLocationInput(finCPP, moveLocation, userMove, movedDown);
+			closeFilePC(finCPP);
+			writeDebugStreamLine("finished read location input");
+
+			if(!end)
+			{
+				writingToCPP(foutCPP,update+1,userMove);
+				closeFilePC(foutCPP);
+				writingToRobot(foutRobot, update + 1);
+				closeFilePC(foutRobot);
+				writeDebugStreamLine("updated chessboard");
+			}
+
 		}
 
 	}
@@ -624,4 +629,5 @@ task main()
 		displayString(2,"Error with file IO");
 		wait1Msec(5000);
 	}
+
 }
