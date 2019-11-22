@@ -204,7 +204,7 @@ int main() {
 	foutPY.close();
 
 	ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
-	foutPY << outNumRC;
+	foutRC << outNumRC;
 	outNumRC++;
 	foutRC.close();
 
@@ -214,8 +214,6 @@ int main() {
 	inNumPY++;
 	finPY.close();
 
-	//Waits for input from robotc file to be reset
-	waitForRCFile(inNumRC);
 	inNumRC++;
 
 	char promotedPiece = 0; 								//used to store users last promoted piece type (initialized to NULL character)
@@ -229,6 +227,7 @@ int main() {
 	string legal_move = "";
 	int numLM = 0;
 	chessMove prevCompMove;
+	string waitElmt = "";
 
 	cout << "File sync successful" << endl;
 
@@ -236,7 +235,7 @@ int main() {
 	{
 		printBoard(position);
 		cout << "Waiting for your move" << endl;
-
+		
 		waitForRCFile(inNumRC);
 		inNumRC++;
 
@@ -253,19 +252,33 @@ int main() {
 		{
 			cout << "Please move " << rowNumToChar(prevCompMove.get_xinit()) << prevCompMove.get_yinit() + 1 
 				 << rowNumToChar(prevCompMove.get_xfin()) << prevCompMove.get_yfin() + 1
-				 << ", then make your move" << endl << "and press the centre button on the robot when finished." << endl;
-				
-			ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
-			foutRC << outNumRC << " " << 0 << " " << 0 << " " << 0 << " " << 0;
-			outNumRC++;
-			foutRC.close();
+				 << "enter any character, make your move" << endl 
+				 << "and then press the centre button on the robot when finished." << endl;
+			
+			cin >> waitElmt;
+			
+			if(waitElmt == "forfeit")
+			{
+				gameOver = true;
+				pyCmd = "Computer_wins";
+			}
+			else
+			{
+				ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
+				foutRC << outNumRC << endl << 0 << " " << 0 << " " << 0 << " " << 0;
+				outNumRC++;
+				foutRC.close();
+			}
 		}
 		else if(x_init == 0 && y_init == 0 && x_fin == 0 && y_fin == 0)
 		{
-			cout << "Invalid Move. Please rearrange the board to the below position and make valid move" << endl;
+			cout << "Invalid Move. Please rearrange the board to the above position, " << endl 
+			<< "enter any character and then make valid move" << endl;
+			
+			cin >> waitElmt;
 			
 			ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
-			foutRC << outNumRC << " " << 0 << " " << 0 << " " << 0 << " " << 0;
+			foutRC << outNumRC << endl << 0 << " " << 0 << " " << 0 << " " << 0;
 			outNumRC++;
 			foutRC.close();
 		}
@@ -305,7 +318,7 @@ int main() {
 				
 				ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
 	
-				foutRC << outNumRC << " " << x_init << " " << y_init << " " << x_fin << " " << y_fin;
+				foutRC << outNumRC << endl << x_init << " " << y_init << " " << x_fin << " " << y_fin;
 				
 				prevCompMove = chessMove(x_init, y_init, x_fin, y_fin);
 				
@@ -350,10 +363,13 @@ int main() {
 			}
 			else if(pyCmd == "Illegal_Move")
 			{
-				cout << "Invalid Move. Please rearrange the board to the below position and make valid move" << endl;
+				cout << "Invalid Move. Please rearrange the board to the above position, " << endl 
+				<< "enter any character and then make valid move" << endl;
+				
+				cin >> waitElmt;
 				
 				ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
-				foutRC << outNumRC << " " << 0 << " " << 0 << " " << 0 << " " << 0;
+				foutRC << outNumRC << endl << 0 << " " << 0 << " " << 0 << " " << 0;
 				outNumRC++;
 				foutRC.close();
 			}
@@ -368,7 +384,7 @@ int main() {
 	
 					ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
 	
-					foutRC << outNumRC << " " << x_init << " "
+					foutRC << outNumRC << endl << x_init << " "
 						<< y_init << " " << x_fin << " " << y_fin;
 	
 					foutRC.close();
@@ -377,7 +393,8 @@ int main() {
 			finPY.close();
 		}
 	}
-	cout << pyCmd << ", Good game!" << endl << "Please move cursor to top left cursor" << endl;
+	cout << pyCmd << endl << "Good game!" << endl 
+		 << "Please move cursor to top left corner of the screen" << endl;
 
 	system("PAUSE");
 	return EXIT_SUCCESS;

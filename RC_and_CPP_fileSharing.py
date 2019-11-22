@@ -3,7 +3,7 @@ from PIL import ImageStat
 import pyautogui
 import time
 
-folderAddress = "C:/Users/Reube/Desktop/CPP to RC testing/"
+folderAddress = "C:/Users/Reube/Desktop/GENE121-ChessRobot/"
 
 def waitForInFile(desiredFirstElement):
     firstElement = str(desiredFirstElement + 1)      #insures initialization does not cause equality
@@ -75,11 +75,13 @@ while True:
 
     pyautogui.click(530, 115)   #download to robot
     time.sleep(1)
-    pyautogui.click(400, 80)    #search bar
+    pyautogui.click(400, 90)    #search bar
     time.sleep(1)
-    pyautogui.typewrite("C:/Users/Reube/Desktop/CPP to RC testing/IPC")
+    pyautogui.typewrite("C:/Users/Reube/Desktop/GENE121-ChessRobot/IPC")
     time.sleep(1)
-    pyautogui.click(275, 170)    #CPP->RC file in finder
+    pyautogui.hotkey("enter")
+    time.sleep(1)
+    pyautogui.click(275, 200)    #CPP->RC file in finder
     time.sleep(1)
     pyautogui.hotkey("enter")
     time.sleep(1)

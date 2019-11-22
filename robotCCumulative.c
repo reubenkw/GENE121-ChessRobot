@@ -241,7 +241,7 @@ bool checkFound(int posX, int posY, bool movement)
 		zDist = moveDownTilTouch(enc_limit);
 		wait1Msec(100);
 		if (SensorValue[S1] == 1) { //the piece was previously there
-			if (chessboard[posX][posY] == '.') {
+			if (chessboard[posY][posX] == '.') {
 				found = true;
 				} else {
 				if (checkUserPiece(zDist))
@@ -299,60 +299,56 @@ void moveColourSens(bool positive) {
 }
 bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & movedDown)
 {
-	openReadPC(fin,"IPC_CPP_TO_RC.txt");
+	openReadPC(fin,"IPC_CPP_to_RC.txt");
 	int x0 = 0, y0 = 0, x = 0, y = 0;
-	bool missing = false, found = false, over = false, successfulMove = false;
+	bool missing = false, found = false, over = false, successfulMove = false, failure = false;
+	int a = 0;
+	readIntPC(fin,a);
 
 	for(int counter = 0; counter < 4; counter++)
 	{
-		int a = 0;
 		readIntPC(fin,a);
 		moveLocation[counter] = a;
-		displayString(counter + 2, "moving to: %d", a);
 	}
 	//check for eaten pieces
 	int checkX = moveLocation[2];
 	int checkY = moveLocation[3];
-	char checkValue = chessboard[checkX][checkY];
+	char checkValue = chessboard[checkY][checkX];
 	if(checkValue != '.')
 	{
 		movePiece(checkX,checkY,0,8, movedDown);
-		chessboard[checkX][checkY] = '.';
+		moveDistancePos(motorB, 405);
+		nMotorEncoder[motorB] = 0;
+		chessboard[checkY][checkX] = '.';
 	}
 	//check for castling
 	else if(checkValue == 'K' &&
-		(moveLocation[3] == moveLocation[0] + 2 || moveLocation[3] == moveLocation[0] - 3))
+		(moveLocation[3] == moveLocation[0] + 2 || moveLocation[3] == moveLocation[0] - 2))
 	{
 		if(moveLocation[3] == moveLocation[0] + 2)
 		{
 			movePiece(7,7,5,7, movedDown);
-			chessboard[5][7] = 'B';
+			chessboard[7][5] = 'B';
 			chessboard[7][7] = '.';
 		}
 		else
 		{
-			movePiece(0,7,2,7, movedDown);
-			chessboard[2][7] = 'B';
-			chessboard[0][7] = '.';
+			movePiece(0,7,3,7, movedDown);
+			chessboard[7][3] = 'B';
+			chessboard[7][0] = '.';
 		}
 	}
-	writeDebugStreamLine("checked for eaten castling");
-	writeDebugStreamLine("moving to: ");
-	writeDebugStreamLine("%d ",moveLocation[0] );
-	writeDebugStreamLine("%d ",moveLocation[1] );
-	writeDebugStreamLine("%d ",moveLocation[2] );
-	writeDebugStreamLine("%d ",moveLocation[3] );
 	if(moveLocation[0] != 0 ||
-		 moveLocation[1] != 0 ||
-		 moveLocation[2] != 0 ||
-		 moveLocation[3] != 0)
+		moveLocation[1] != 0 ||
+	moveLocation[2] != 0 ||
+	moveLocation[3] != 0)
 	{
 		successfulMove = movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3], movedDown);
 	}
 	else
-		successfulMove = true;
+		failure = true;
 
-	if(!successfulMove)
+	if(!successfulMove && !failure)
 	{
 		x0 = 1;
 		y0 = 1;
@@ -363,26 +359,28 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 		chessboard[moveLocation[3]][moveLocation[2]] = piece;
 		return over;
 	}
-	else
+	else if(successfulMove && !failure)
 	{
 		char piece = chessboard[moveLocation[1]][moveLocation[0]];
 		chessboard[moveLocation[1]][moveLocation[0]] = '.';
 		chessboard[moveLocation[3]][moveLocation[2]] = piece;
 	}
-	writeDebugStreamLine("checked for eaten pieces");
 
 	//finished our turn
 	time1[T1] = 0;
 
-	while(!getButtonPress(buttonEnter))
+	if(!failure)
 	{
-		if(time1[T1]>180000)
-			playSound(soundBeepBeep);
-	}
-	while(getButtonPress(buttonEnter))
-	{
-		if(time1[T1]>180000)
-			playSound(soundBeepBeep);
+		while(!getButtonPress(buttonEnter))
+		{
+			if(time1[T1]>180000)
+				playSound(soundBeepBeep);
+		}
+		while(getButtonPress(buttonEnter))
+		{
+			if(time1[T1]>180000)
+				playSound(soundBeepBeep);
+		}
 	}
 
 	writeDebugStreamLine("waited for user turn");
@@ -420,7 +418,8 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 			{
 				do
 				{
-					readTextPC(fin,s);
+					if(!readTextPC(fin,s))
+						break;
 				}while(s!="piecePos");
 			}
 		}while(!missing && !found);
@@ -431,13 +430,6 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 		char piece = chessboard[y0][x0];
 		chessboard[y0][x0] = '.';
 		chessboard[y][x] = piece;
-		for(int i = 0; i < 8; i++)
-		{
-			for(int j = 0; j < 8; j++)
-			{
-				writeDebugStreamLine("%d",(int)chessboard[i][j]);
-			}
-		}
 	}
 	else
 	{
@@ -550,18 +542,8 @@ void initialCheck(int*userMove)
 
 	if((x0 != 0 || y0 != 0||x != 0||y !=0) && missing && found)
 	{
-		writeDebugStreamLine("%d",(int)chessboard[x0][y0]);
 		chessboard[y0][x0] = '.';
 		chessboard[y][x] = 'W';
-		for(int i = 0; i < 8; i++)
-		{
-			for(int j = 0; j < 8; j++)
-			{
-				writeDebugStreamLine("Printing %d,%d",i,j);
-				writeDebugStreamLine("");
-				writeDebugStreamLine("%d",(int)chessboard[i][j]);
-			}
-		}
 	}
 	else
 	{
@@ -590,12 +572,12 @@ void initialCheck(int*userMove)
 
 void writingToCPP(TFileHandle&fout, int writeFirstElement,int*userMove)
 {
-	openWritePC(fout,"IPC_RC_TO_CPP.txt");
+	openWritePC(fout,"IPC_RC_to_CPP.txt");
 	writeLongPC(fout,writeFirstElement);
 	for(int counter = 0; counter < 4; counter++)
 	{
+		writeTextPC(fout," ");
 		writeLongPC(fout,userMove[counter]);
-		writeTextPC(fout,"");
 	}
 	closeFilePC(fout);
 }
@@ -623,6 +605,7 @@ task main()
 	//Y move = motorB
 	//Z move = motorC
 	//claw motor = motorD
+	displayString(0," ");
 	clearDebugStream();
 	float movedDown = 0;
 	SensorType[S1] = sensorEV3_Touch;
@@ -638,11 +621,11 @@ task main()
 	TFileHandle finCPP;
 	TFileHandle finRobot;
 	TFileHandle foutRobot;
-	bool fileWriteCPPOkay = openWritePC(foutCPP,"IPC_RC_TO_CPP.txt");
-	bool fileReadCPPOkay = openReadPC(finCPP,"IPC_CPP_TO_RC.txt");
+	bool fileWriteCPPOkay = openWritePC(foutCPP,"IPC_RC_to_CPP.txt");
+	bool fileReadCPPOkay = openReadPC(finCPP,"IPC_CPP_to_RC.txt");
 	bool fileReadRobotOkay = openReadPC(finRobot,"SETUP_CHESSBOARD.txt");
-//	bool fileWriteRobotOkay = openWritePC(foutRobot,"SETUP_CHESSBOARD.txt");
-//	closeFilePC(foutRobot);
+	//	bool fileWriteRobotOkay = openWritePC(foutRobot,"SETUP_CHESSBOARD.txt");
+	//	closeFilePC(foutRobot);
 	if(fileWriteCPPOkay && fileReadCPPOkay && fileReadRobotOkay)
 	{
 		closeFilePC(foutCPP);
@@ -650,14 +633,6 @@ task main()
 		closeFilePC(finRobot);
 		update = initializeChessboard(finRobot);
 
-		writeDebugStreamLine("%d",update);
-		for(int i = 0; i < 8; i++)
-		{
-			for(int j = 0; j < 8; j++)
-			{
-				writeDebugStreamLine("%d",(int)chessboard[i][j]);
-			}
-		}
 		if(update == 0)
 		{
 			while(!getButtonPress(buttonEnter))
@@ -666,7 +641,6 @@ task main()
 			{}
 			initialCheck(userMove);
 			return_to_start();
-			writeDebugStreamLine("finished initial check");
 			writingToCPP(foutCPP,update+1,userMove);
 			writingToRobot(foutRobot,update+1);
 		}

@@ -10,6 +10,7 @@ def waitForInFile(desiredFirstElement):
         time.sleep(2)
         with open(folderAddress + "IPC/IPC_CPP_to_PY.txt","r") as fin:
             firstElement = fin.readline()
+    time.sleep(1)
 
 outNum = 0
 with open(folderAddress + "IPC/IPC_PY_to_CPP.txt","w") as fout:
@@ -41,6 +42,7 @@ while not crntBoard.is_game_over():
     with open(folderAddress + "IPC/IPC_CPP_to_PY.txt","r") as fin:
         fin.readline()
         fileInput = fin.readline()
+        print(fileInput)
         UserMove = chess.Move.from_uci(str(fileInput))
         print("Human move:", UserMove)
 
