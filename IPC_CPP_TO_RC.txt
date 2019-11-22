@@ -1,4 +1,0 @@
-4 6 4 4 
-piecePos 4 1 destPos 4 2 destPos 4 3 
-piecePos 5 1 destPos 5 2 destPos 5 3
-0
