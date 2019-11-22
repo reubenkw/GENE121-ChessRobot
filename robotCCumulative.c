@@ -299,9 +299,9 @@ void moveColourSens(bool positive) {
 }
 bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & movedDown)
 {
-	openReadPC(fin,"IPC_CPP_to_RC.txt");
+	openReadPC(fin,"IPC_CPP_TO_RC.txt");
 	int x0 = 0, y0 = 0, x = 0, y = 0;
-	bool missing = false, found = false, over = false;
+	bool missing = false, found = false, over = false, successfulMove = false;
 
 	for(int counter = 0; counter < 4; counter++)
 	{
@@ -342,7 +342,15 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 	writeDebugStreamLine("%d ",moveLocation[1] );
 	writeDebugStreamLine("%d ",moveLocation[2] );
 	writeDebugStreamLine("%d ",moveLocation[3] );
-	bool successfulMove = movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3], movedDown);
+	if(moveLocation[0] != 0 ||
+		 moveLocation[1] != 0 ||
+		 moveLocation[2] != 0 ||
+		 moveLocation[3] != 0)
+	{
+		successfulMove = movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3], movedDown);
+	}
+	else
+		successfulMove = true;
 
 	if(!successfulMove)
 	{
@@ -350,6 +358,9 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 		y0 = 1;
 		x = 1;
 		y = 1;
+		char piece = chessboard[moveLocation[1]][moveLocation[0]];
+		chessboard[moveLocation[1]][moveLocation[0]] = '.';
+		chessboard[moveLocation[3]][moveLocation[2]] = piece;
 		return over;
 	}
 	else
@@ -365,12 +376,12 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 
 	while(!getButtonPress(buttonEnter))
 	{
-		if(time1[T1]>30000)
+		if(time1[T1]>180000)
 			playSound(soundBeepBeep);
 	}
 	while(getButtonPress(buttonEnter))
 	{
-		if(time1[T1]>30000)
+		if(time1[T1]>180000)
 			playSound(soundBeepBeep);
 	}
 
@@ -579,7 +590,7 @@ void initialCheck(int*userMove)
 
 void writingToCPP(TFileHandle&fout, int writeFirstElement,int*userMove)
 {
-	openWritePC(fout,"IPC_RC_to_CPP.txt");
+	openWritePC(fout,"IPC_RC_TO_CPP.txt");
 	writeLongPC(fout,writeFirstElement);
 	for(int counter = 0; counter < 4; counter++)
 	{
@@ -627,8 +638,8 @@ task main()
 	TFileHandle finCPP;
 	TFileHandle finRobot;
 	TFileHandle foutRobot;
-	bool fileWriteCPPOkay = openWritePC(foutCPP,"IPC_RC_to_CPP.txt");
-	bool fileReadCPPOkay = openReadPC(finCPP,"IPC_CPP_to_RC.txt");
+	bool fileWriteCPPOkay = openWritePC(foutCPP,"IPC_RC_TO_CPP.txt");
+	bool fileReadCPPOkay = openReadPC(finCPP,"IPC_CPP_TO_RC.txt");
 	bool fileReadRobotOkay = openReadPC(finRobot,"SETUP_CHESSBOARD.txt");
 //	bool fileWriteRobotOkay = openWritePC(foutRobot,"SETUP_CHESSBOARD.txt");
 //	closeFilePC(foutRobot);
