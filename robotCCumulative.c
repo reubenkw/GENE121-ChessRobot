@@ -365,12 +365,12 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 
 	while(!getButtonPress(buttonEnter))
 	{
-		if(time1[T1]>180000)
+		if(time1[T1]>30000)
 			playSound(soundBeepBeep);
 	}
 	while(getButtonPress(buttonEnter))
 	{
-		if(time1[T1]>180000)
+		if(time1[T1]>30000)
 			playSound(soundBeepBeep);
 	}
 
