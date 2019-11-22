@@ -299,7 +299,7 @@ void moveColourSens(bool positive) {
 }
 bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & movedDown)
 {
-	openReadPC(fin,"IPC_CPP_TO_RC.txt");
+	openReadPC(fin,"IPC_CPP_to_RC.txt");
 	int x0 = 0, y0 = 0, x = 0, y = 0;
 	bool missing = false, found = false, over = false;
 
@@ -579,7 +579,7 @@ void initialCheck(int*userMove)
 
 void writingToCPP(TFileHandle&fout, int writeFirstElement,int*userMove)
 {
-	openWritePC(fout,"IPC_RC_TO_CPP.txt");
+	openWritePC(fout,"IPC_RC_to_CPP.txt");
 	writeLongPC(fout,writeFirstElement);
 	for(int counter = 0; counter < 4; counter++)
 	{
@@ -627,8 +627,8 @@ task main()
 	TFileHandle finCPP;
 	TFileHandle finRobot;
 	TFileHandle foutRobot;
-	bool fileWriteCPPOkay = openWritePC(foutCPP,"IPC_RC_TO_CPP.txt");
-	bool fileReadCPPOkay = openReadPC(finCPP,"IPC_CPP_TO_RC.txt");
+	bool fileWriteCPPOkay = openWritePC(foutCPP,"IPC_RC_to_CPP.txt");
+	bool fileReadCPPOkay = openReadPC(finCPP,"IPC_CPP_to_RC.txt");
 	bool fileReadRobotOkay = openReadPC(finRobot,"SETUP_CHESSBOARD.txt");
 //	bool fileWriteRobotOkay = openWritePC(foutRobot,"SETUP_CHESSBOARD.txt");
 //	closeFilePC(foutRobot);
