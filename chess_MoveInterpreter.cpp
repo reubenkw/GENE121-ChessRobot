@@ -137,15 +137,15 @@ void updateBoard(int Fx_init, int Fy_init, int Fx_fin, int Fy_fin, char& promote
 	}
 }
 
-void moveNotationToCoords(int& Fx_init, int& Fy_init, int& Fx_fin, int& Fy_fin, string move) {
+void moveNotationToCoords(int& Fx_init, int& Fy_init, int& Fx_fin, int& Fy_fin, string move, char& promotedPiece) {
 	Fx_init = move[0] - 97;
 	Fy_init = move[1] - 49;
 
 	Fx_fin = move[2] - 97;
 	Fy_fin = move[3] - 49;
 
-	//if(move[4] != 0)
-	//	promotedPiece = move[4];
+	if(move[4] != 0)
+		promotedPiece = move[4];
 }
 
 void deleteLegalMove(int moveNum, int& totalLM, chessMove legalMoves[])
@@ -215,8 +215,8 @@ int main() {
 	finPY.close();
 
 	//Waits for input from robotc file to be reset
-	//waitForRCFile(inNumRC);
-	//inNumRC++;
+	waitForRCFile(inNumRC);
+	inNumRC++;
 
 	char promotedPiece = 0; 								//used to store users last promoted piece type (initialized to NULL character)
 	int x_init = 0, y_init = 0, x_fin = 0, y_fin = 0; 		//used for both CPP to PY and PY to RC
@@ -228,6 +228,7 @@ int main() {
 	int moveNum = 0;
 	string legal_move = "";
 	int numLM = 0;
+	chessMove prevCompMove;
 
 	cout << "File sync successful" << endl;
 
@@ -236,116 +237,147 @@ int main() {
 		printBoard(position);
 		cout << "Waiting for your move" << endl;
 
-		//waitForRCFile(inNumRC);
-		//inNumRC++;
+		waitForRCFile(inNumRC);
+		inNumRC++;
 
-		//ifstream finRC("Debug/IPC/IPC_RC_to_CPP.txt");
+		ifstream finRC("IPC/IPC_RC_to_CPP.txt");
 
-		//finRC >> firstElement;		//just to move to next element
-		cin >> x_init >> y_init >> x_fin >> y_fin;
+		finRC >> firstElement;		//just to move to next element
+		finRC >> x_init >> y_init >> x_fin >> y_fin;
+		//cin >> x_init >> y_init >> x_fin >> y_fin;
+		//cout << x_init << y_init << x_fin << y_fin;
+		
+		finRC.close();
 
-		//finRC.close();
-
-		ofstream foutPY("IPC/IPC_CPP_to_PY.txt");
-
-		userMove = coordsToMoveNotation(x_init, y_init, x_fin, y_fin, promotedPiece, position);
-		foutPY << outNumPY << endl << userMove;
-		cout << "Human move: " << userMove << endl;
-		outNumPY++;
-
-		foutPY.close();
-
-		cout << "Waiting for python file" << endl;
-		waitForPYFile(inNumPY);
-		inNumPY++;
-		cout << "Python file recieved" << endl;
-
-		ifstream finPY("IPC/IPC_PY_to_CPP.txt");
-
-		finPY >> firstElement >> pyCmd;
-
-		if (pyCmd == "none")
+		if(x_init == 1 && y_init == 1 && x_fin == 1 && y_fin == 1)
 		{
-			updateBoard(x_init, y_init, x_fin, y_fin, promotedPiece, position);
-			
-			printBoard(position);
-			
-			finPY >> compMove;
-			
-			cout << compMove << endl;
-			
-			moveNotationToCoords(x_init, y_init, x_fin, y_fin, compMove);
-
-			updateBoard(x_init, y_init, x_fin, y_fin, promotedPiece, position);
-			
-			ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
-
-			foutRC << outNumRC << " " << false << " " x_init << " " << y_init << " " << x_fin << " " << y_fin;
-			
-			chessMove legalMoves[250];
-
-			moveNum = 0;
-
-			while (finPY >> legal_move)
-			{
-				moveNotationToCoords(x_init, y_init, x_fin, y_fin, legal_move);
-
-				legalMoves[moveNum] = chessMove(x_init, y_init, x_fin, y_fin);
-				moveNum++;
-			}
-			numLM = moveNum;
-			moveNum = 0;
-
-			while (moveNum < numLM)
-			{
-				x_init = legalMoves[moveNum].get_xinit();
-				y_init = legalMoves[moveNum].get_yinit();
-
-				foutRC << endl << "piecePos " << x_init << " " << y_init << endl
-					<< "destinationPos " << legalMoves[moveNum].get_xfin() << " " << legalMoves[moveNum].get_yfin();
+			cout << "Please move " << rowNumToChar(prevCompMove.get_xinit()) << prevCompMove.get_yinit() + 1 
+				 << rowNumToChar(prevCompMove.get_xfin()) << prevCompMove.get_yfin() + 1
+				 << ", then make your move" << endl << "and press the centre button on the robot when finished." << endl;
 				
-				int checkMoveNum = moveNum + 1;
-				while (checkMoveNum < numLM)
-				{
-					if (x_init == legalMoves[checkMoveNum].get_xinit() && y_init == legalMoves[checkMoveNum].get_yinit())
-					{
-						foutRC << endl << "destinationPos " << legalMoves[checkMoveNum].get_xfin() << " " << legalMoves[checkMoveNum].get_yfin();
-						deleteLegalMove(checkMoveNum, numLM, legalMoves);
-					}
-					else
-						checkMoveNum++;
-				}
-				moveNum++;
-			}
-
+			ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
+			foutRC << outNumRC << " " << 0 << " " << 0 << " " << 0 << " " << 0;
 			outNumRC++;
 			foutRC.close();
 		}
-		else if(pyCmd == "Illegal_Move")
+		else if(x_init == 0 && y_init == 0 && x_fin == 0 && y_fin == 0)
 		{
-			cout << "Invalid Move. Please rearrange the board to the above position and make valid move";
+			cout << "Invalid Move. Please rearrange the board to the below position and make valid move" << endl;
+			
+			ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
+			foutRC << outNumRC << " " << 0 << " " << 0 << " " << 0 << " " << 0;
+			outNumRC++;
+			foutRC.close();
 		}
 		else
 		{
-			gameOver = true;
-			if (pyCmd == "Computer_wins")
+			ofstream foutPY("IPC/IPC_CPP_to_PY.txt");
+	
+			userMove = coordsToMoveNotation(x_init, y_init, x_fin, y_fin, promotedPiece, position);
+			foutPY << outNumPY << endl << userMove;
+			cout << "Human move: " << userMove << endl;
+			outNumPY++;
+	
+			foutPY.close();
+	
+			cout << "Waiting for python file" << endl;
+			waitForPYFile(inNumPY);
+			inNumPY++;
+			cout << "Python file recieved" << endl;
+	
+			ifstream finPY("IPC/IPC_PY_to_CPP.txt");
+	
+			finPY >> firstElement >> pyCmd;
+	
+			if (pyCmd == "none")
 			{
+				updateBoard(x_init, y_init, x_fin, y_fin, promotedPiece, position);
+				
+				printBoard(position);
+				
 				finPY >> compMove;
-
-				moveNotationToCoords(x_init, y_init, x_fin, y_fin, compMove);
-
+				
+				cout << "Computer Move: " << compMove << endl;
+				
+				moveNotationToCoords(x_init, y_init, x_fin, y_fin, compMove, promotedPiece);
+	
+				updateBoard(x_init, y_init, x_fin, y_fin, promotedPiece, position);
+				
 				ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
-
-				foutRC << outNumRC << " " << true << " " << x_init << " "
-					<< y_init << " " << x_fin << " " << y_fin;
-
+	
+				foutRC << outNumRC << " " << x_init << " " << y_init << " " << x_fin << " " << y_fin;
+				
+				prevCompMove = chessMove(x_init, y_init, x_fin, y_fin);
+				
+				chessMove legalMoves[250];
+	
+				moveNum = 0;
+	
+				while (finPY >> legal_move)
+				{
+					moveNotationToCoords(x_init, y_init, x_fin, y_fin, legal_move, promotedPiece);
+	
+					legalMoves[moveNum] = chessMove(x_init, y_init, x_fin, y_fin);
+					moveNum++;
+				}
+				numLM = moveNum;
+				moveNum = 0;
+	
+				while (moveNum < numLM)
+				{
+					x_init = legalMoves[moveNum].get_xinit();
+					y_init = legalMoves[moveNum].get_yinit();
+	
+					foutRC << endl << "piecePos " << x_init << " " << y_init << endl
+						<< "destinationPos " << legalMoves[moveNum].get_xfin() << " " << legalMoves[moveNum].get_yfin();
+					
+					int checkMoveNum = moveNum + 1;
+					while (checkMoveNum < numLM)
+					{
+						if (x_init == legalMoves[checkMoveNum].get_xinit() && y_init == legalMoves[checkMoveNum].get_yinit())
+						{
+							foutRC << endl << "destinationPos " << legalMoves[checkMoveNum].get_xfin() << " " << legalMoves[checkMoveNum].get_yfin();
+							deleteLegalMove(checkMoveNum, numLM, legalMoves);
+						}
+						else
+							checkMoveNum++;
+					}
+					moveNum++;
+				}
+	
+				outNumRC++;
 				foutRC.close();
 			}
+			else if(pyCmd == "Illegal_Move")
+			{
+				cout << "Invalid Move. Please rearrange the board to the below position and make valid move" << endl;
+				
+				ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
+				foutRC << outNumRC << " " << 0 << " " << 0 << " " << 0 << " " << 0;
+				outNumRC++;
+				foutRC.close();
+			}
+			else
+			{
+				gameOver = true;
+				if (pyCmd == "Computer_wins")
+				{
+					finPY >> compMove;
+	
+					moveNotationToCoords(x_init, y_init, x_fin, y_fin, compMove, promotedPiece);
+	
+					ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
+	
+					foutRC << outNumRC << " " << x_init << " "
+						<< y_init << " " << x_fin << " " << y_fin;
+	
+					foutRC.close();
+				}
+			}
+			finPY.close();
 		}
-		finPY.close();
 	}
-	cout << pyCmd << ", Good game!" << endl;
-
+	cout << pyCmd << ", Good game!" << endl << "Please move cursor to top left cursor" << endl;
 
 	system("PAUSE");
 	return EXIT_SUCCESS;
