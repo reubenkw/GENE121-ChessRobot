@@ -1,6 +1,2 @@
-4
-5 5 6 3
-piecePos 4 2
-destinationPos 5 3
-destinationPos 3 2
-destinationPos 3 1
+7
+0 0 0 0

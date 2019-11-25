@@ -170,6 +170,63 @@ void printBoard(char position[8][8])
 	}
 }
 
+void sendValidMoves(ostream& foutRC, char& promotedPiece) {
+	ifstream finRC("IPC/IPC_CPP_to_RC.txt");
+	chessMove legalMoves[250];
+	string elmt = "";
+	int x_init = 0, y_init = 0, x_fin = 0, y_fin = 0;
+	
+	
+	finRC >> elmt >> elmt;
+	
+	int moveNum = 0;
+	string legal_move;
+	
+	while (finRC >> legal_move)
+	{
+		moveNotationToCoords(x_init, y_init, x_fin, y_fin, legal_move, promotedPiece);
+	
+		legalMoves[moveNum] = chessMove(x_init, y_init, x_fin, y_fin);
+		moveNum++;
+	}
+
+	int numLM = moveNum;
+
+	moveNum = 0;
+
+	while (finRC >> legal_move)
+	{
+		moveNotationToCoords(x_init, y_init, x_fin, y_fin, legal_move, promotedPiece);
+
+		legalMoves[moveNum] = chessMove(x_init, y_init, x_fin, y_fin);
+		moveNum++;
+	}
+	numLM = moveNum;
+	moveNum = 0;
+
+	while (moveNum < numLM)
+	{
+		x_init = legalMoves[moveNum].get_xinit();
+		y_init = legalMoves[moveNum].get_yinit();
+
+		foutRC << endl << "piecePos " << x_init << " " << y_init << endl
+			<< "destinationPos " << legalMoves[moveNum].get_xfin() << " " << legalMoves[moveNum].get_yfin();
+		
+		int checkMoveNum = moveNum + 1;
+		while (checkMoveNum < numLM)
+		{
+			if (x_init == legalMoves[checkMoveNum].get_xinit() && y_init == legalMoves[checkMoveNum].get_yinit())
+			{
+				foutRC << endl << "destinationPos " << legalMoves[checkMoveNum].get_xfin() << " " << legalMoves[checkMoveNum].get_yfin();
+				deleteLegalMove(checkMoveNum, numLM, legalMoves);
+			}
+			else
+				checkMoveNum++;
+		}
+		moveNum++;
+	}
+}
+
 int main() {
 	/*
 	char position[8][8] = {
@@ -209,10 +266,8 @@ int main() {
 	foutRC.close();
 
 	cout << "Waiting for file sync" << endl;
-	ifstream finPY("IPC/IPC_PY_to_CPP.txt");
 	waitForPYFile(inNumPY);
 	inNumPY++;
-	finPY.close();
 
 	inNumRC++;
 
@@ -265,7 +320,8 @@ int main() {
 			else
 			{
 				ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
-				foutRC << outNumRC << endl << 0 << " " << 0 << " " << 0 << " " << 0;
+				foutRC << outNumRC << endl << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
+				sendValidMoves(foutRC, promotedPiece);
 				outNumRC++;
 				foutRC.close();
 			}
@@ -278,7 +334,8 @@ int main() {
 			cin >> waitElmt;
 			
 			ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
-			foutRC << outNumRC << endl << 0 << " " << 0 << " " << 0 << " " << 0;
+			foutRC << outNumRC << endl << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
+			sendValidMoves(foutRC, promotedPiece);
 			outNumRC++;
 			foutRC.close();
 		}
@@ -369,7 +426,8 @@ int main() {
 				cin >> waitElmt;
 				
 				ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
-				foutRC << outNumRC << endl << 0 << " " << 0 << " " << 0 << " " << 0;
+				foutRC << outNumRC << endl << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
+				sendValidMoves(foutRC, promotedPiece);
 				outNumRC++;
 				foutRC.close();
 			}

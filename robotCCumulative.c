@@ -90,17 +90,19 @@ void moveDistanceNeg (tMotor motorPort, float dist)
 
 void openClaw (int enc_limit)
 {
+	time1[T2] = 0;
 	nMotorEncoder[motorD] = 0;
 	motor[motorD] = -45;
-	while(nMotorEncoder[motorD] > enc_limit)
+	while(nMotorEncoder[motorD] > enc_limit && time1[T2] < 2000)
 	{}
 	motor[motorD] = 0;
 }
 
 void closeClaw()
 {
+	time1[T2] = 0;
 	motor[motorD] = 45;
-	while (nMotorEncoder[motorD] < 0)
+	while (nMotorEncoder[motorD] < 0 && time1[T2] < 2000)
 	{}
 	motor[motorD] = 0;
 }
@@ -314,7 +316,7 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 	int checkX = moveLocation[2];
 	int checkY = moveLocation[3];
 	char checkValue = chessboard[checkY][checkX];
-	if(checkValue != '.')
+	if(checkValue != '.' && (moveLocation[0] != 0 || moveLocation[1] != 0 || moveLocation[2] != 0 || moveLocation[3] != 0))
 	{
 		movePiece(checkX,checkY,0,8, movedDown);
 		moveDistancePos(motorB, 405);
@@ -346,9 +348,12 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 		successfulMove = movePiece(moveLocation[0],moveLocation[1],moveLocation[2],moveLocation[3], movedDown);
 	}
 	else
+	{
+		successfulMove = true;
 		failure = true;
+  }
 
-	if(!successfulMove && !failure)
+	if(!successfulMove)
 	{
 		x0 = 1;
 		y0 = 1;
