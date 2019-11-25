@@ -24,6 +24,13 @@ void writingToCPP(TFileHandle&fout, int writeFirstElement,int*userMove);
 void writingToRobot(TFileHandle&fout, int update);
 bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials, float & movedDown);
 
+/*
+NAME: pickUpPiece
+PARAMETERS: float & movedDown
+RETURN-TYPE: bool
+DESC: opens claw all the way, moves down until it touches a piece, moves back up, closes the claw and opens it slightly, moves down
+and picks up the piece. Returns true if it detects a piece. 
+*/
 bool pickUpPiece (float & movedDown)
 {
 	bool successful = true;
@@ -158,6 +165,12 @@ void moveToSquare(int x, int y)
 	}
 }
 
+/*
+NAME: testThreeTimes
+PARAMETERS: int initX, int initY, int fX, int fY, bool pass, int trials, float & movedDown
+RETURN-TYPE: bool
+DESC: tests if the piece has been moved and placed three times each
+*/
 bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials, float & movedDown) {
 	if (!pass) {
 		pass = true; //reset to true
