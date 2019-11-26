@@ -24,6 +24,11 @@ void writingToCPP(TFileHandle&fout, int writeFirstElement,int*userMove);
 void writingToRobot(TFileHandle&fout, int update);
 bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials, float & movedDown);
 
+/*
+NAME: pickUpPiece
+PARAMETERS: float & movedDown
+DESC: moves the claw down until it contacts a piece, picks up the piece, and returns true if a piece is detected.
+*/
 bool pickUpPiece (float & movedDown)
 {
 	bool successful = true;
@@ -49,6 +54,12 @@ bool pickUpPiece (float & movedDown)
 	}
 }
 
+/*
+NAME: moveDownTilTouch
+PARAMETERS: int enc_limit_claw
+DESC: takes in the amount that the claw should open based on encoder values, engages the Z motor and moves down until either it touches
+or reaches a preset limit, it returns the motor encoder value to tell other functions how far to move
+*/
 
 int moveDownTilTouch (int enc_limit_claw)
 {
@@ -62,6 +73,12 @@ int moveDownTilTouch (int enc_limit_claw)
 	motor[motorC] = 0;
 	return nMotorEncoder[motorC];
 }
+/*
+NAME: moveDistancePos
+PARAMETERS: tMotor motorport, float dist
+DESC: turns on a motor to a positive value, turns off the motor when it reaches distance limit that was passed in
+*/
+
 
 void moveDistancePos (tMotor motorPort, float dist) //we can decide on what positive is based on how we installed the motors
 {
@@ -74,6 +91,11 @@ void moveDistancePos (tMotor motorPort, float dist) //we can decide on what posi
 
 	motor[motorPort] = 0;
 }
+/*
+NAME: moveDistanceNeg
+PARAMETERS: tMotor motorport, float dist
+DESC: turns on a motor to a negative value, turns off when it reaches the distance limit that was passed in
+*/
 
 void moveDistanceNeg (tMotor motorPort, float dist)
 {
@@ -87,6 +109,11 @@ void moveDistanceNeg (tMotor motorPort, float dist)
 
 	motor[motorPort] = 0;
 }
+/*
+NAME: openClaw
+PARAMETERS: int enc_limit
+DESC: opens claw to desired encoder value
+*/
 
 void openClaw (int enc_limit)
 {
@@ -98,6 +125,12 @@ void openClaw (int enc_limit)
 	motor[motorD] = 0;
 }
 
+/*
+NAME: closeClaw
+PARAMETERS: NONE
+DESC: closes claw until motor encoder resets to 0 or the timer runs out
+*/
+
 void closeClaw()
 {
 	time1[T2] = 0;
@@ -106,6 +139,13 @@ void closeClaw()
 	{}
 	motor[motorD] = 0;
 }
+
+/*
+NAME: dropPiece
+PARAMETERS: float & movedDown
+DESC: takes in a value indicating how far the claw should move, moves the claw down, opens the claw to release the piece
+and moves the claw back up
+*/
 
 void dropPiece(float & movedDown)
 {
@@ -118,6 +158,13 @@ void dropPiece(float & movedDown)
 
 	closeClaw();
 }
+
+/*
+NAME: moveToSquare
+PARAMETERS: int x, int y
+DESC: takes in a coordinate based the bottom left square being (0,0), and runs the motor until it reaches the square
+the starting position of the claw is (0,7)
+*/
 
 void moveToSquare(int x, int y)
 {
@@ -194,6 +241,12 @@ bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials
 	return true;
 }
 
+/*
+NAME: return_to_start
+PARAMETERS: NONE
+DESC: runs the motors in the opposite direction until all the values reset to 0, resets the encoder values, 
+the resting position is (0,7) based on a coordinate system with the bottom left corner being (0,0)
+*/
 void return_to_start()
 {
 
@@ -210,6 +263,13 @@ void return_to_start()
 	nMotorEncoder[motorB] = 0;
 
 }
+
+/*
+NAME: movePiece
+PARAMETERS: int ix, int iy, int fx, int fy, float & movedDown
+DESC: takes in initial and final locations, calls on testThreeTimes function to pick up and deposit a piece, returns
+to resting position after the piece was moved and returns successful if the piece was moved
+*/
 
 bool movePiece (int ix, int iy, int fx, int fy, float & movedDown)
 {
