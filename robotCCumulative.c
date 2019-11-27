@@ -424,6 +424,7 @@ bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & 
 		char piece = chessboard[moveLocation[1]][moveLocation[0]];
 		chessboard[moveLocation[1]][moveLocation[0]] = '.';
 		chessboard[moveLocation[3]][moveLocation[2]] = piece;
+		over = false;
 		return over;
 	}
 	else if(successfulMove && !failure)
