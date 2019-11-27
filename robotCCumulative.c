@@ -16,7 +16,7 @@ bool movePiece (int ix, int iy, int fx, int fy, float & movedDown);
 bool checkMissing(int posX, int posY);
 bool checkFound(int posX, int posY, bool movement);
 bool checkUserPiece(float&moveDown);
-bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & movedDown);
+bool makeMoveFindMove(TFileHandle&fin, int*moveLocation, int*userMove, float & movedDown);
 void moveColourSens(bool positive);
 int initializeChessboard(TFileHandle&fin);
 void initialCheck(int*userMove);
@@ -361,7 +361,7 @@ void moveColourSens(bool positive) {
 	}
 	motor[motorA] = 0;
 }
-bool readLocationInput(TFileHandle&fin, int*moveLocation, int*userMove, float & movedDown)
+bool makeMoveFindMove(TFileHandle&fin, int*moveLocation, int*userMove, float & movedDown)
 {
 	openReadPC(fin,"IPC_CPP_to_RC.txt");
 	int x0 = 0, y0 = 0, x = 0, y = 0;
@@ -714,7 +714,7 @@ task main()
 		}
 		else
 		{
-			end = readLocationInput(finCPP, moveLocation, userMove, movedDown);
+			end = makeMoveFindMove(finCPP, moveLocation, userMove, movedDown);
 			closeFilePC(finCPP);
 			writeDebugStreamLine("finished read location input");
 
