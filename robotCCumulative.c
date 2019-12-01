@@ -165,7 +165,6 @@ PARAMETERS: int x, int y
 DESC: takes in a coordinate based the bottom left square being (0,0), and runs the motor until it reaches the square
 the starting position of the claw is (0,7)
 */
-
 void moveToSquare(int x, int y)
 {
 	//starting position (0, 7)
@@ -205,6 +204,16 @@ void moveToSquare(int x, int y)
 	}
 }
 
+
+/*
+NAME: testThreeTimes
+PARAMETERS: int initX, int initY, int fX, int fY, bool pass, int trials, float & movedDown
+DESC: takes in initial position and movement position, in addition to a pass boolean and trials for recurstion. the value for 
+z-motor encoder movement has also been passed on. the function checks for placement of the piece successfully: the piece is 
+moved to the pick up position, tries to pick up the piece, and places the piece. it then checks if the piece was placed 
+successfully three times. if it was not placed successfully, it goes back to the initial position to try and pick the piece up again. 
+if the return to initial position fails three times, the function returns false.
+*/
 bool testThreeTimes (int initX, int initY, int fX, int fY, bool pass, int trials, float & movedDown) {
 	if (!pass) {
 		pass = true; //reset to true
@@ -270,7 +279,6 @@ PARAMETERS: int ix, int iy, int fx, int fy, float & movedDown
 DESC: takes in initial and final locations, calls on testThreeTimes function to pick up and deposit a piece, returns
 to resting position after the piece was moved and returns successful if the piece was moved
 */
-
 bool movePiece (int ix, int iy, int fx, int fy, float & movedDown)
 {
 	bool successful = true;
@@ -279,6 +287,11 @@ bool movePiece (int ix, int iy, int fx, int fy, float & movedDown)
 	return successful;
 }
 
+/*
+NAME: checkMissing
+PARAMETERS: int posX, int posY
+DESC: checks if a piece that was there previously (by comparison to the global 2d chess array) is now missing
+*/
 bool checkMissing(int posX, int posY) {
 	bool found = false;
 	int enc_limit = -250;
@@ -293,6 +306,14 @@ bool checkMissing(int posX, int posY) {
 	return found;
 }
 
+/*
+NAME: checkFound
+PARAMETERS: int posX, int posY, bool movement
+DESC: checks if the piece has been found in two cases:
+1) when checking if a user piece has moved to a given position (movement is true)
+2) when checking of a piece has been placed successfully (movement is false)
+returns true or false based on if the piece has been found
+*/
 bool checkFound(int posX, int posY, bool movement)
 {
 	bool found = false;
@@ -305,12 +326,12 @@ bool checkFound(int posX, int posY, bool movement)
 		if (SensorValue[S1] == 1) { //the piece was previously there
 			if (chessboard[posY][posX] == '.') {
 				found = true;
-				} else {
+			} else {
 				if (checkUserPiece(zDist))
 					found = true;
 			}
 		}
-		} else {
+	} else {
 		zDist = moveDownTilTouch(enc_limit);
 		if (SensorValue[S1] == 1)
 			found = true;
@@ -321,7 +342,12 @@ bool checkFound(int posX, int posY, bool movement)
 	return found;
 }
 
-
+/*
+NAME: checkUserPiece
+PARAMETERS: float&moveDown
+DESC: checks the piece colour to see if it is a user piece: this is used in the case a piece is "killed"
+returns true if the piece chosen is the user's piece (checked via colour sensor detecting if piece has red sticker on it)
+*/
 bool checkUserPiece(float&moveDown) {
 	//assume user is already in the correct piece position
 	//move some distance up to measure colour
