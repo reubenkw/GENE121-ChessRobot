@@ -1,16 +1,3 @@
-/*
-	incoming file should contain the original and final coordinates of the
-	piece that moved
-
-	program should wait for file to update, read file, produce a FEN string,
-	send FEN string off to stockfish, await stockfish response, list of pickup
-	and dropoff coordinates, then update and close file
-
-	note that FEN is a position notation convention that is used by stockfish.
-	stockfish will most likely take in a FEN position and then produce a move
-	(eg. B7/2P2N2/6Q1/4p3/k6N/2P1p2P/1P6/K7 w - - 0 1 ------> ke5)
-*/
-
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
@@ -23,10 +10,11 @@
 
 using namespace std;
 
-//char newPosition[8][8];
-
-//Capital letter means white
-
+/*
+NAME: chessMove
+PARAMETERS: int const x_init0, int const y_init0, int const x_fin0, int const y_fin0
+DISC: Stores a single chess move for the purposes of sending legal moves to robotC
+*/
 class chessMove
 {
 	private:
@@ -64,6 +52,11 @@ class chessMove
 		}
 };
 
+/*
+NAME: waitForRCFile
+PARAMETERS: int desiredFirstElement
+DESC: Checks robotC to C++ file for update every two seconds and exits once update is found
+*/
 void waitForRCFile(int desiredFirstElement) {
 	int inNum = desiredFirstElement + 1;
 	do {
@@ -74,6 +67,11 @@ void waitForRCFile(int desiredFirstElement) {
 	} while (inNum != desiredFirstElement);
 }
 
+/*
+NAME: waitForPYFile
+PARAMETERS: int desiredFirstElement
+DESC: Checks python to C++ file for update every two seconds and exits once update is found
+*/
 void waitForPYFile(int desiredFirstElement) {
 	int inNum = desiredFirstElement + 1;
 	do {
@@ -84,6 +82,11 @@ void waitForPYFile(int desiredFirstElement) {
 	} while (inNum != desiredFirstElement);
 }
 
+/*
+NAME: rowNumToChar
+PARAMETERS: int row
+DESC: Converts a row in coordinate form to a letter for chess board notation
+*/
 string rowNumToChar(int row) {
 	switch (row) {
 	case 0: return "a";
@@ -97,6 +100,11 @@ string rowNumToChar(int row) {
 	}
 }
 
+/*
+NAME: coordsToMoveNotation
+PARAMETERS: int Fx_init, int Fy_init, int Fx_fin, int Fy_fin, char& promotedPiece, char position[8][8]
+DESC: Converts move in coordinates form to long algebriac chess move notation
+*/
 string coordsToMoveNotation(int Fx_init, int Fy_init, int Fx_fin, int Fy_fin, char& promotedPiece, char position[8][8]) {
 	stringstream returnStr;
 	returnStr << rowNumToChar(Fx_init);
@@ -111,6 +119,11 @@ string coordsToMoveNotation(int Fx_init, int Fy_init, int Fx_fin, int Fy_fin, ch
 	return returnStr.str();
 }
 
+/*
+NAME: updateBoard
+PARAMETERS: int Fx_init, int Fy_init, int Fx_fin, int Fy_fin, char& promotedPiece, char position[8][8]
+DESC: Updates board array by replacing piece in the final position with the peice in the original location
+*/
 void updateBoard(int Fx_init, int Fy_init, int Fx_fin, int Fy_fin, char& promotedPiece, char position[8][8]) {
 	if (position[Fx_init][Fy_init] == 'K' && Fx_init == 4 && Fy_init == 0 && (Fx_fin == 2 || Fx_fin == 6)) {
 		if (Fx_fin == 2) {
@@ -137,6 +150,11 @@ void updateBoard(int Fx_init, int Fy_init, int Fx_fin, int Fy_fin, char& promote
 	}
 }
 
+/*
+NAME: moveNotationToCoords
+PARAMETERS: int& Fx_init, int& Fy_init, int& Fx_fin, int& Fy_fin, string move, char& promotedPiece
+DESC: Converts move in long algebriac notation to coordinate form
+*/
 void moveNotationToCoords(int& Fx_init, int& Fy_init, int& Fx_fin, int& Fy_fin, string move, char& promotedPiece) {
 	Fx_init = move[0] - 97;
 	Fy_init = move[1] - 49;
@@ -148,6 +166,11 @@ void moveNotationToCoords(int& Fx_init, int& Fy_init, int& Fx_fin, int& Fy_fin, 
 		promotedPiece = move[4];
 }
 
+/*
+NAME: deleteLegalMove
+PARAMETERS: int moveNum, int& totalLM, chessMove legalMoves[]
+DESC: Deletes move in legal moves array by shifting all moves above it down one to overide the move
+*/
 void deleteLegalMove(int moveNum, int& totalLM, chessMove legalMoves[])
 {
 	while (moveNum < totalLM - 1)
@@ -158,6 +181,11 @@ void deleteLegalMove(int moveNum, int& totalLM, chessMove legalMoves[])
 	totalLM--;
 }
 
+/*
+NAME: printBoard
+PARAMETERS: char position[8][8]
+DESC: Outputs board to screen for user varification
+*/
 void printBoard(char position[8][8])
 {
 	for(int y = 7; y >= 0; y--)
@@ -170,19 +198,23 @@ void printBoard(char position[8][8])
 	}
 }
 
+/*
+NAME: sendValidMoves
+PARAMETERS: ostream& foutRC, char& promotedPiece
+DESC: Outputs legal next moves to robotC communication file for optimized searching
+*/
 void sendValidMoves(ostream& foutRC, char& promotedPiece) {
-	ifstream finRC("IPC/IPC_CPP_to_RC.txt");
+	ifstream finPY("IPC/IPC_PY_to_CPP.txt");
 	chessMove legalMoves[250];
 	string elmt = "";
 	int x_init = 0, y_init = 0, x_fin = 0, y_fin = 0;
 	
-	
-	finRC >> elmt >> elmt;
+	finPY << elmt << elmt;
 	
 	int moveNum = 0;
 	string legal_move;
 	
-	while (finRC >> legal_move)
+	while(finPY >> legal_move)
 	{
 		moveNotationToCoords(x_init, y_init, x_fin, y_fin, legal_move, promotedPiece);
 	
@@ -194,7 +226,7 @@ void sendValidMoves(ostream& foutRC, char& promotedPiece) {
 
 	moveNum = 0;
 
-	while (finRC >> legal_move)
+	while (finPY >> legal_move)
 	{
 		moveNotationToCoords(x_init, y_init, x_fin, y_fin, legal_move, promotedPiece);
 
@@ -217,7 +249,8 @@ void sendValidMoves(ostream& foutRC, char& promotedPiece) {
 		{
 			if (x_init == legalMoves[checkMoveNum].get_xinit() && y_init == legalMoves[checkMoveNum].get_yinit())
 			{
-				foutRC << endl << "destinationPos " << legalMoves[checkMoveNum].get_xfin() << " " << legalMoves[checkMoveNum].get_yfin();
+				foutRC << endl << "destinationPos " << legalMoves[checkMoveNum].get_xfin() 
+					<< " " << legalMoves[checkMoveNum].get_yfin();
 				deleteLegalMove(checkMoveNum, numLM, legalMoves);
 			}
 			else
@@ -225,22 +258,14 @@ void sendValidMoves(ostream& foutRC, char& promotedPiece) {
 		}
 		moveNum++;
 	}
+	finPY.close();
 }
 
-int main() {
-	/*
-	char position[8][8] = {
-		{'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'},
-		{'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
-		{0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0},
-		{'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
-		{'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'}
-	};
-	*/
-	
+/*
+NAME: Main
+DESC: Facilitates all aspects of program including game startup, play, error handling and shutdown proceedures
+*/
+int main() {	
 	char position[8][8] = {
 		{'R', 'P', '.', '.', '.', '.', 'p', 'r'},
 		{'N', 'P', '.', '.', '.', '.', 'p', 'n'},
@@ -252,29 +277,30 @@ int main() {
 		{'R', 'P', '.', '.', '.', '.', 'p', 'r'}
 	};
 	
-	int inNumRC = 0, outNumRC = 0, inNumPY = 0, outNumPY = 0;
+	int inNumRC = 0, outNumRC = 1, inNumPY = 0, outNumPY = 0;
 
 	//Resets output to python file
 	ofstream foutPY("IPC/IPC_CPP_to_PY.txt");
 	foutPY << outNumPY;
 	outNumPY++;
 	foutPY.close();
-
+	
+	//Resets output to robotC file
 	ofstream foutRC("IPC/IPC_CPP_to_RC.txt");
 	foutRC << outNumRC;
 	outNumRC++;
 	foutRC.close();
 
 	cout << "Waiting for file sync" << endl;
+	
+	//Waits for python file to reset to 0
 	waitForPYFile(inNumPY);
 	inNumPY++;
-
-	inNumRC++;
-
-	char promotedPiece = 0; 								//used to store users last promoted piece type (initialized to NULL character)
-	int x_init = 0, y_init = 0, x_fin = 0, y_fin = 0; 		//used for both CPP to PY and PY to RC
+	
+	char promotedPiece = 0; 							//used to store users last promoted piece type
+	int x_init = 0, y_init = 0, x_fin = 0, y_fin = 0; 	//used for both CPP to PY and PY to RC
 	bool gameOver = false;
-	int firstElement = 0;									//not used but required to get past the first element
+	int firstElement = 0;								//not used but required to get past the first element
 	string userMove = "";
 	string pyCmd = "";
 	string compMove = "";
@@ -298,11 +324,10 @@ int main() {
 
 		finRC >> firstElement;		//just to move to next element
 		finRC >> x_init >> y_init >> x_fin >> y_fin;
-		//cin >> x_init >> y_init >> x_fin >> y_fin;
-		//cout << x_init << y_init << x_fin << y_fin;
 		
 		finRC.close();
 
+		//(1,1) to (1,1) is an error code for piece not able to move
 		if(x_init == 1 && y_init == 1 && x_fin == 1 && y_fin == 1)
 		{
 			cout << "Please move " << rowNumToChar(prevCompMove.get_xinit()) << prevCompMove.get_yinit() + 1 
@@ -326,6 +351,7 @@ int main() {
 				foutRC.close();
 			}
 		}
+		//(0,0) to (0,0) is an error code for piece not found
 		else if(x_init == 0 && y_init == 0 && x_fin == 0 && y_fin == 0)
 		{
 			cout << "Invalid Move. Please rearrange the board to the above position, " << endl 
@@ -358,7 +384,7 @@ int main() {
 			ifstream finPY("IPC/IPC_PY_to_CPP.txt");
 	
 			finPY >> firstElement >> pyCmd;
-	
+			
 			if (pyCmd == "none")
 			{
 				updateBoard(x_init, y_init, x_fin, y_fin, promotedPiece, position);
@@ -379,42 +405,8 @@ int main() {
 				
 				prevCompMove = chessMove(x_init, y_init, x_fin, y_fin);
 				
-				chessMove legalMoves[250];
-	
-				moveNum = 0;
-	
-				while (finPY >> legal_move)
-				{
-					moveNotationToCoords(x_init, y_init, x_fin, y_fin, legal_move, promotedPiece);
-	
-					legalMoves[moveNum] = chessMove(x_init, y_init, x_fin, y_fin);
-					moveNum++;
-				}
-				numLM = moveNum;
-				moveNum = 0;
-	
-				while (moveNum < numLM)
-				{
-					x_init = legalMoves[moveNum].get_xinit();
-					y_init = legalMoves[moveNum].get_yinit();
-	
-					foutRC << endl << "piecePos " << x_init << " " << y_init << endl
-						<< "destinationPos " << legalMoves[moveNum].get_xfin() << " " << legalMoves[moveNum].get_yfin();
-					
-					int checkMoveNum = moveNum + 1;
-					while (checkMoveNum < numLM)
-					{
-						if (x_init == legalMoves[checkMoveNum].get_xinit() && y_init == legalMoves[checkMoveNum].get_yinit())
-						{
-							foutRC << endl << "destinationPos " << legalMoves[checkMoveNum].get_xfin() << " " << legalMoves[checkMoveNum].get_yfin();
-							deleteLegalMove(checkMoveNum, numLM, legalMoves);
-						}
-						else
-							checkMoveNum++;
-					}
-					moveNum++;
-				}
-	
+				sendValidMoves(foutRC, promotedPiece);
+				
 				outNumRC++;
 				foutRC.close();
 			}
